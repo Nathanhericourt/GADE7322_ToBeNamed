@@ -199,7 +199,7 @@ namespace TowerDefense.Placement.Editor
         }
 
         [ContextMenu("3. Clear platforms")]
-        private void ClearPlatforms()
+        public void ClearPlatforms()
         {
             for (int i = spawnedPlatforms.Count - 1; i >= 0; i--)
             {
