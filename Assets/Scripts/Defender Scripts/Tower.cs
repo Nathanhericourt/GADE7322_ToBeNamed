@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Tower : MonoBehaviour
+public class Tower : MonoBehaviour, IDamageable
 {
     [Tooltip("The tower's starting and maximum health")]
     public int maxHealth = 100;
@@ -36,7 +36,6 @@ public class Tower : MonoBehaviour
     {
         isDestroyed = true;
         Debug.Log("Tower destroyed! GAME OVER.");
-        // NOTE: Hook a real Game Over screen / game loop
-        // mechanic here later. This just logs it for now.
+        
     }
 }
