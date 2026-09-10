@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Spawns enemies at set time intervals and sends each one down a path toward the tower
+// Spawns enemies at set time intervals and sends each one down a path to the tower
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Enemy Setup")]
@@ -12,10 +12,29 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Time in seconds between each enemy spawning")]
     public float spawnInterval = 2f;
 
-    [Tooltip("Drag in your EnemyPath objects here - one spawner can use all 3 paths")]
+    [Tooltip("Optional: manually drag EnemyPath objects here. Leave empty to automatically use every EnemyPath found in the scene at runtime (used once real procedural paths exist).")]
     public List<EnemyPath> paths = new List<EnemyPath>();
 
+    private List<EnemyPath> activePaths = new List<EnemyPath>();
     private float spawnTimer = 0f;
+
+    private void Start()
+    {
+        if (paths != null && paths.Count > 0)
+        {
+            activePaths = paths;
+        }
+        else
+        {
+            // Not a manual list, it automatically finds every EnemyPath
+            activePaths = new List<EnemyPath>(FindObjectsByType<EnemyPath>(FindObjectsInactive.Exclude));
+
+            if (activePaths.Count == 0)
+            {
+                Debug.LogWarning("EnemySpawner found no EnemyPath objects in the scene at Start.");
+            }
+        }
+    }
 
     private void Update()
     {
@@ -30,14 +49,14 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemy()
     {
-        if (enemyPrefab == null || paths.Count == 0)
+        if (enemyPrefab == null || activePaths.Count == 0)
         {
-            Debug.LogWarning("EnemySpawner is missing an enemy prefab or has no paths assigned.");
+            Debug.LogWarning("EnemySpawner is missing an enemy prefab or has no paths available.");
             return;
         }
 
-        // Pick a random path so enemies come from different directions
-        EnemyPath chosenPath = paths[Random.Range(0, paths.Count)];
+        // Pick a random path
+        EnemyPath chosenPath = activePaths[Random.Range(0, activePaths.Count)];
 
         if (chosenPath.WaypointCount == 0)
         {
