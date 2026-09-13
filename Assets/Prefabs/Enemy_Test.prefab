@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4523769081220509174}
   m_Layer: 0
   m_Name: Enemy_Test
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -131,3 +131,5 @@ MonoBehaviour:
   moveSpeed: 2
   attackDamage: 5
   attackInterval: 1
+  defenderDetectRange: 1.5
+  defenderTag: Defender

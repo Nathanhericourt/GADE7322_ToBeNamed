@@ -68,7 +68,7 @@ namespace TowerDefense.Placement.Editor
             {
                 noBuildZones.Clear();
                 noBuildZones.AddRange
-                    (FindAnyObjectByType<NoBuildZone>());
+                    (FindObjectsByType<NoBuildZone>(FindObjectsInactive.Exclude));
             }
 
             TerrainData data = terrain.terrainData;

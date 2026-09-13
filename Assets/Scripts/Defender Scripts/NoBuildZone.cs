@@ -1,9 +1,9 @@
 using UnityEngine;
-namespace TowerDefence.Placement
+namespace TowerDefense.Placement
 {
     //THis script marks a region of the terrain where towers cant be placed
     //attaches empty game object and position/scale it over the area to exclude eg. enemy path, rocks, trees, etc.
-    public class NoBuildZones : MonoBehaviour
+    public class NoBuildZone : MonoBehaviour
     {
         public enum ZoneShape { Box, Sphere };
 
