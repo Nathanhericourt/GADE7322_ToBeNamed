@@ -6,7 +6,7 @@ using UnityEngine;
 /// Assumes enemies have a component implementing IDamageable (see below),
 /// and are on the layer set in enemyLayer / tagged "Enemy".
 /// </summary>
-public class Tower : MonoBehaviour
+public class Defender : MonoBehaviour
 {
     [Header("Targeting")]
     [SerializeField] private float range = 8f;

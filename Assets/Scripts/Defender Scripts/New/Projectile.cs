@@ -47,7 +47,7 @@ public class Projectile : MonoBehaviour
         // Swap this for your actual enemy/health interface.
         Enemy enemy = hitTarget.GetComponent<Enemy>();
         if (enemy != null)
-            enemy.TakeDamage(damage);
+            enemy.TakeDamage((int)damage);
 
         if (hitEffectPrefab != null)
             Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
