@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : MonoBehaviour, IDamageable
@@ -27,6 +28,9 @@ public class Enemy : MonoBehaviour, IDamageable
     private int currentHealth;
     private NavMeshAgent agent;
 
+    private List<Vector3> waypoints = new List<Vector3>();
+    private int currentWaypointIndex = 0;
+
     private IDamageable currentTarget;
     private bool reachedTower = false;
     private float attackTimer = 0f;
@@ -38,26 +42,48 @@ public class Enemy : MonoBehaviour, IDamageable
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
 
-        // Head straight for the tower 
-        Tower tower = FindAnyObjectByType<Tower>();
-        if (tower != null)
+        // If agent doesnt land on the NavMesh
+        if (!agent.isOnNavMesh)
         {
-            agent.SetDestination(tower.transform.position);
+            Debug.LogWarning("Enemy spawned off the NavMesh and will do nothing. Check the spawner's spawn position.");
+            enabled = false;
+            return;
+        }
+
+        // Follow the assigned path for the tower
+        if (waypoints.Count > 0)
+        {
+            agent.SetDestination(waypoints[0]);
         }
         else
         {
-            Debug.LogWarning("Enemy could not find a Tower to path towards.");
+            Tower tower = FindAnyObjectByType<Tower>();
+            if (tower != null)
+            {
+                agent.SetDestination(tower.transform.position);
+            }
+            else
+            {
+                Debug.LogWarning("Enemy could not find a Tower to path towards.");
+            }
         }
     }
 
-    // So EnemySpawner doesn't need to change how it creates enemies
     public void SetPath(EnemyPath assignedPath)
     {
-        // Intentionally empty - see comment above.
+        waypoints.Clear();
+        if (assignedPath == null) return;
+
+        for (int i = 0; i < assignedPath.WaypointCount; i++)
+        {
+            waypoints.Add(assignedPath.GetWaypointPosition(i));
+        }
     }
 
     private void Update()
     {
+        if (agent == null || !agent.isOnNavMesh) return;
+
         // A defender blocking the way nearby always gets fought first
         IDamageable nearbyDefender = FindNearbyDefender();
         if (nearbyDefender != null)
@@ -68,22 +94,42 @@ public class Enemy : MonoBehaviour, IDamageable
             return;
         }
 
-        // No defender nearby - keep walking
+        // No defender nearby
         if (agent.isStopped)
         {
             agent.isStopped = false;
         }
 
-        // Check if we've arrived at the tower
-        if (!reachedTower && HasArrivedAtDestination())
+        if (!reachedTower)
         {
-            reachedTower = true;
-            currentTarget = FindAnyObjectByType<Tower>();
+            FollowPath();
         }
-
-        if (reachedTower)
+        else
         {
             Attack();
+        }
+    }
+
+    private void FollowPath()
+    {
+        if (agent.pathPending) return;
+
+        // Reached the current waypoint
+        if (agent.remainingDistance <= agent.stoppingDistance)
+        {
+            currentWaypointIndex++;
+
+            if (currentWaypointIndex < waypoints.Count)
+            {
+                agent.SetDestination(waypoints[currentWaypointIndex]);
+            }
+            else
+            {
+                // Path is finished
+                reachedTower = true;
+                currentTarget = FindAnyObjectByType<Tower>();
+                agent.isStopped = true;
+            }
         }
     }
 

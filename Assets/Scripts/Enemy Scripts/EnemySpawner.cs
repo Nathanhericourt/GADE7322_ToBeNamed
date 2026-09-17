@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 // Spawns enemies at set time intervals and sends each one down a path to the tower
 public class EnemySpawner : MonoBehaviour
@@ -38,6 +39,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void Update()
     {
+        // Don't spawn until the procedural terrain exists and the NavMesh is baked
+        if (!GenerationGrid.TerrainReady)
+        {
+            return;
+        }
+
         spawnTimer += Time.deltaTime;
 
         if (spawnTimer >= spawnInterval)
@@ -64,9 +71,26 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        // Spawn the enemy at the first waypoint of the chosen path
         Vector3 spawnPosition = chosenPath.GetWaypointPosition(0);
+
+        // Snap the spawn point onto the NavMesh so the agent activates
+        if (NavMesh.SamplePosition(spawnPosition, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+        {
+            spawnPosition = hit.position;
+        }
+        else
+        {
+            Debug.LogWarning($"No NavMesh near {spawnPosition} - skipping this spawn.");
+            return;
+        }
+
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+
+        // Gives the path to the enemy
+        if (newEnemy.TryGetComponent(out Enemy enemy))
+        {
+            enemy.SetPath(chosenPath);
+        }
 
     }
 }

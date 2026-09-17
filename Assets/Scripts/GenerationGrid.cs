@@ -1,7 +1,7 @@
-using NUnit.Framework;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 
 public class GenerationGrid : MonoBehaviour
 {
@@ -9,16 +9,35 @@ public class GenerationGrid : MonoBehaviour
 
     public GameObject objectToSpawn;
 
+    // FIX 2 (new): one field so the spawner/enemies know when the world is ready.
+    // Set to true after generation AND the NavMesh bake - this alone fixes
+    // the "Failed to create agent" errors, because nothing spawns before
+    // the NavMesh exists.
+    public static bool TerrainReady { get; private set; } = false;
+
+    [Tooltip("Drag the GameObject with the NavMeshSurface component here (AI Navigation package)")]
+    public NavMeshSurface navMeshSurface;
+
     private int worldSizeX = 25;
     private int worldSizeZ = 25;
     private int noiseHeight = 8;
     private float gridOffset = 1f;
 
+    // FIX 3 (new): random per-game offset for the noise
+    private float noiseOffsetX;
+    private float noiseOffsetZ;
 
     private List<Vector3> blockPositions = new List<Vector3>();
 
     void Start()
     {
+        // FIX 3: randomize so the terrain is different every new game
+        noiseOffsetX = Random.Range(0f, 10000f);
+        noiseOffsetZ = Random.Range(0f, 10000f);
+
+        // FIX 2: reset the flag at the start of each run
+        TerrainReady = false;
+
         for(int x = 0; x < worldSizeX; x++)
         {
             for(int z = 0; z < worldSizeZ; z++)
@@ -32,6 +51,27 @@ public class GenerationGrid : MonoBehaviour
             }
         }
         SpawnObject();
+
+        StartCoroutine(BakeNavMeshWhenReady());
+    }
+
+    // NavMesh
+    private IEnumerator BakeNavMeshWhenReady()
+    {
+        // let physics register the freshly spawned block colliders first
+        yield return new WaitForFixedUpdate();
+
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+        }
+        else
+        {
+            Debug.LogError("[GenerationGrid] No NavMeshSurface assigned! Install the AI Navigation package (Window > Package Manager > Unity Registry) and add the component to the terrain root.");
+        }
+
+        TerrainReady = true;
+        Debug.Log("[GenerationGrid] Terrain ready - enemies can spawn.");
     }
 
     private void SpawnObject()
@@ -54,13 +94,13 @@ public class GenerationGrid : MonoBehaviour
 
     private float generateNoise (int x, int z, float detailScale)
     {
-        float xNoise = (x + this.transform.position.x) / detailScale;
-        float zNoise = (z + this.transform.position.y) / detailScale;
+        float xNoise = (x + noiseOffsetX) / detailScale;   // FIX 3: was (x + this.transform.position.x)
+        float zNoise = (z + noiseOffsetZ) / detailScale;   // FIX 3: was (z + this.transform.position.y) - also
+                                                           // sampled Y for Z, which was a second bug
 
         float wave = Mathf.PerlinNoise(xNoise, zNoise);
 
-
-        Debug.Log(wave);
-        return wave; // Not randomizing
+        // Deleted Debug.Log(wave) because it fired 625 times...
+        return wave;
     }
 }

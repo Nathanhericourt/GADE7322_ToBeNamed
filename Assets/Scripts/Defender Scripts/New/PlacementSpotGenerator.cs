@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TowerDefense.Placement;
@@ -45,6 +46,16 @@ public class PlacementSpotGenerator : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(WaitForTerrainThenScan());
+        GenerateSpots();
+    }
+
+    private IEnumerator WaitForTerrainThenScan()
+    {
+        // Don't scan until the terrain exists
+        while (!GenerationGrid.TerrainReady)
+            yield return null;
+
         GenerateSpots();
     }
 
