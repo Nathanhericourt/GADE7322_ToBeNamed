@@ -57,6 +57,10 @@ public class GenerationGrid : MonoBehaviour
         float xNoise = (x + this.transform.position.x) / detailScale;
         float zNoise = (z + this.transform.position.y) / detailScale;
 
-        return Mathf.PerlinNoise(xNoise, zNoise);
+        float wave = Mathf.PerlinNoise(xNoise, zNoise);
+
+
+        Debug.Log(wave);
+        return wave; // Not randomizing
     }
 }
