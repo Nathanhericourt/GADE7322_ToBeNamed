@@ -1,12 +1,14 @@
 using UnityEngine;
+using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : MonoBehaviour, IDamageable
 {
     [Header("Stats")]
     [Tooltip("How much damage this enemy can take before dying")]
     public int maxHealth = 20;
 
-    [Tooltip("How fast the enemy walks along the path")]
+    [Tooltip("How fast the enemy walks (applied to the NavMeshAgent's speed)")]
     public float moveSpeed = 2f;
 
     [Tooltip("Damage dealt per attack, to either the tower or a defender")]
@@ -23,8 +25,7 @@ public class Enemy : MonoBehaviour, IDamageable
     public string defenderTag = "Defender";
 
     private int currentHealth;
-    private EnemyPath path;
-    private int currentWaypointIndex = 0;
+    private NavMeshAgent agent;
 
     private IDamageable currentTarget;
     private bool reachedTower = false;
@@ -33,32 +34,62 @@ public class Enemy : MonoBehaviour, IDamageable
     private void Start()
     {
         currentHealth = maxHealth;
+
+        agent = GetComponent<NavMeshAgent>();
+        agent.speed = moveSpeed;
+
+        // Head straight for the tower 
+        Tower tower = FindAnyObjectByType<Tower>();
+        if (tower != null)
+        {
+            agent.SetDestination(tower.transform.position);
+        }
+        else
+        {
+            Debug.LogWarning("Enemy could not find a Tower to path towards.");
+        }
     }
 
+    // So EnemySpawner doesn't need to change how it creates enemies
     public void SetPath(EnemyPath assignedPath)
     {
-        path = assignedPath;
-        currentWaypointIndex = 0;
+        // Intentionally empty - see comment above.
     }
 
     private void Update()
     {
-        // A defender blocking the way gets fought first
+        // A defender blocking the way nearby always gets fought first
         IDamageable nearbyDefender = FindNearbyDefender();
         if (nearbyDefender != null)
         {
+            agent.isStopped = true;
             currentTarget = nearbyDefender;
             Attack();
             return;
         }
 
+        // No defender nearby - keep walking
+        if (agent.isStopped)
+        {
+            agent.isStopped = false;
+        }
+
+        // Check if we've arrived at the tower
+        if (!reachedTower && HasArrivedAtDestination())
+        {
+            reachedTower = true;
+            currentTarget = FindAnyObjectByType<Tower>();
+        }
+
         if (reachedTower)
         {
             Attack();
-            return;
         }
+    }
 
-        MoveAlongPath();
+    private bool HasArrivedAtDestination()
+    {
+        return !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance;
     }
 
     // Checks a small radius around the enemy for the Defender
@@ -81,39 +112,6 @@ public class Enemy : MonoBehaviour, IDamageable
         return null;
     }
 
-    private void MoveAlongPath()
-    {
-        if (path == null || currentWaypointIndex >= path.WaypointCount)
-        {
-            return;
-        }
-
-        Vector3 targetPosition = path.GetWaypointPosition(currentWaypointIndex);
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
-
-        if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
-        {
-            currentWaypointIndex++;
-
-            if (currentWaypointIndex >= path.WaypointCount)
-            {
-                StartAttackingTower();
-            }
-        }
-    }
-
-    private void StartAttackingTower()
-    {
-        // Finds the Tower object in the scene
-        Tower tower = FindAnyObjectByType<Tower>();
-
-        if (tower != null)
-        {
-            currentTarget = tower;
-            reachedTower = true;
-        }
-    }
-
     private void Attack()
     {
         if (currentTarget == null)
@@ -129,7 +127,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    // Anything that damages the enemy (tower, defenders) calls this
+    // Anything that damages the enemy calls this
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;

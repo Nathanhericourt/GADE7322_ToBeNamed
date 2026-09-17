@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using TowerDefense.Placement;
 
 /// <summary>
 /// Scans an area of the 3D map by raycasting straight down at each grid point,
@@ -33,6 +34,11 @@ public class PlacementSpotGenerator : MonoBehaviour
     [SerializeField] private GameObject placementSpotPrefab;
     [SerializeField] private Transform spotsParent;
 
+    [Header("No-Build Zones")]
+    [Tooltip("Leave empty and enable auto find zones to grab every NoBuildZone in the scene (e.g. the enemy paths)")]
+    [SerializeField] private List<NoBuildZone> noBuildZones = new List<NoBuildZone>();
+    [SerializeField] private bool autoFindZones = true;
+
     private readonly List<PlacementSpot> generatedSpots = new List<PlacementSpot>();
 
     public IReadOnlyList<PlacementSpot> Spots => generatedSpots;
@@ -46,6 +52,12 @@ public class PlacementSpotGenerator : MonoBehaviour
     public void GenerateSpots()
     {
         ClearSpots();
+
+        if (autoFindZones)
+        {
+            noBuildZones.Clear();
+            noBuildZones.AddRange(FindObjectsByType<NoBuildZone>(FindObjectsInactive.Exclude));
+        }
 
         float halfWidth = areaSize.x * 0.5f;
         float halfDepth = areaSize.y * 0.5f;
@@ -62,11 +74,28 @@ public class PlacementSpotGenerator : MonoBehaviour
                 if (Physics.CheckSphere(hit.point, blockCheckRadius, blockingLayer))
                     continue;
 
+                if (IsInsideAnyNoBuildZone(hit.point))
+                    continue;    
+
                 SpawnSpot(hit.point);
             }
         }
 
         Debug.Log($"PlacementSpotGenerator: generated {generatedSpots.Count} placement spots.");
+    }
+
+    // Skips this point if it falls inside a designer-placed NoBuildZone, like one covering an enemy path
+    private bool IsInsideAnyNoBuildZone(Vector3 point)
+    {
+        foreach (NoBuildZone zone in noBuildZones)
+        {
+            if (zone != null && zone.Contains(point))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void SpawnSpot(Vector3 worldPos)

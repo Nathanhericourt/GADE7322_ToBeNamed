@@ -21,20 +21,15 @@ public class EnemyPath : MonoBehaviour
         return transform.position;
     }
 
+    // Marks the spawn point with a small sphere in the Scene view
     private void OnDrawGizmos()
     {
-        if (waypoints == null || waypoints.Count < 2)
+        if (waypoints == null || waypoints.Count == 0 || waypoints[0] == null)
         {
             return;
         }
-
+ 
         Gizmos.color = Color.red;
-        for (int i = 0; i < waypoints.Count - 1; i++)
-        {
-            if (waypoints[i] != null && waypoints[i + 1] != null)
-            {
-                Gizmos.DrawLine(waypoints[i].position, waypoints[i + 1].position);
-            }
-        }
+        Gizmos.DrawWireSphere(waypoints[0].position, 0.5f);
     }
 }

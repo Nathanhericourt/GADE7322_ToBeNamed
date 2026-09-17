@@ -68,11 +68,5 @@ public class EnemySpawner : MonoBehaviour
         Vector3 spawnPosition = chosenPath.GetWaypointPosition(0);
         GameObject newEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
 
-        // Tell the new enemy which path to walk
-        Enemy enemyScript = newEnemy.GetComponent<Enemy>();
-        if (enemyScript != null)
-        {
-            enemyScript.SetPath(chosenPath);
-        }
     }
 }

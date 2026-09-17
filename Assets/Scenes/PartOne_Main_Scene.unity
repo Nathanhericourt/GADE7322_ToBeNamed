@@ -119,6 +119,99 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &59137572
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 59137573}
+  - component: {fileID: 59137574}
+  - component: {fileID: 59137575}
+  - component: {fileID: 59137576}
+  m_Layer: 0
+  m_Name: PlacementSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &59137573
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59137572}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &59137574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59137572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46ca86aaf84e3f74eb2decb5cc046fc0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacementSpotGenerator
+  areaCenter: {x: 0, y: 0, z: 0}
+  areaSize: {x: 25, y: 25}
+  cellSize: 2
+  raycastHeight: 50
+  raycastDistance: 200
+  buildableGroundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  blockingLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  blockCheckRadius: 0.5
+  placementSpotPrefab: {fileID: 5203718892586053000, guid: d41a4bc46af24074abf81c67b7ac1c23, type: 3}
+  spotsParent: {fileID: 59137573}
+  noBuildZones: []
+  autoFindZones: 1
+--- !u!114 &59137575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59137572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40e028cf5d9cd374e9c9c57fde5a5479, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TowerPlacementManager
+  placementSpotLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  mainCamera: {fileID: 1511286976}
+  maxRaycastDistance: 500
+--- !u!114 &59137576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 59137572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec912f6184ab1c54eaef1694613121f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TestBuildInput
+  defenderPrefab: {fileID: 8472090999748434907, guid: 51e09fca2755bf2429e1d6ceb1bb9f88, type: 3}
+  placementManager: {fileID: 59137575}
 --- !u!1 &165387701
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,6 +494,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1007519650}
   - component: {fileID: 1007519649}
+  - component: {fileID: 1007519651}
   m_Layer: 0
   m_Name: EnemySpawner
   m_TagString: Untagged
@@ -438,6 +532,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1007519651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1007519648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec912f6184ab1c54eaef1694613121f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Testbuildinput
+  defenderPrefab: {fileID: 0}
+  placementManager: {fileID: 0}
 --- !u!1 &1141853637
 GameObject:
   m_ObjectHideFlags: 0
@@ -648,13 +756,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1511286974}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2113091, y: 0.2113091, z: -0.0468461, w: 0.9531539}
-  m_LocalPosition: {x: -8.96, y: 10.85, z: -16.59}
+  m_LocalRotation: {x: 0.19996412, y: 0.3736123, z: -0.08282785, w: 0.90198}
+  m_LocalPosition: {x: -25, y: 15, z: -25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 25, y: 25, z: 0}
+  m_LocalEulerAnglesHint: {x: 25, y: 45, z: 0}
 --- !u!114 &1511286978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1202,3 +1310,4 @@ SceneRoots:
   - {fileID: 1594933824}
   - {fileID: 1686675714}
   - {fileID: 885130446}
+  - {fileID: 59137573}

@@ -6,8 +6,15 @@ using UnityEngine;
 /// Assumes enemies have a component implementing IDamageable (see below),
 /// and are on the layer set in enemyLayer / tagged "Enemy".
 /// </summary>
-public class Defender : MonoBehaviour
+public class Defender : MonoBehaviour, IDamageable
 {
+    [Header("Health")]
+    [Tooltip("The defender's starting and maximum health")]
+    [SerializeField] private int maxHealth = 50;
+    [Tooltip("Current health (read-only while playing, resets on Start)")]
+    [SerializeField] private int currentHealth;
+    private bool isDestroyed = false;
+    
     [Header("Targeting")]
     [SerializeField] private float range = 8f;
     [SerializeField] private LayerMask enemyLayer;
@@ -29,8 +36,44 @@ public class Defender : MonoBehaviour
     private float fireCooldown;
     private float targetScanCooldown;
 
+    private void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    // Called by anything that damages this defender (e.g. Enemy.cs),
+    // matching the same IDamageable pattern used by Tower.cs
+    public void TakeDamage(int amount)
+    {
+        if (isDestroyed)
+        {
+            return;
+        }
+
+        currentHealth -= amount;
+        Debug.Log("Defender took " + amount + " damage. Health left: " + currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        isDestroyed = true;
+        Debug.Log("Defender destroyed.");
+        Destroy(gameObject);
+    }
+
     private void Update()
     {
+        if (isDestroyed)
+        {
+            return;
+        }
+        
         UpdateTarget();
 
         if (currentTarget == null)
