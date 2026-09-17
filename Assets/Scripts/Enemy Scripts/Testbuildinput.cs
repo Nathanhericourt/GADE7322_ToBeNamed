@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // add this
 
 // Temp Test Script
 // Because theres no UI button yet to select which defender to build
@@ -15,7 +16,8 @@ public class TestBuildInput : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        // New Input System equivalent of Input.GetKeyDown(KeyCode.Alpha1)
+        if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             placementManager.SelectTowerToBuild(defenderPrefab);
             Debug.Log("Defender selected - click a placement spot to build it.");
