@@ -14,6 +14,11 @@ public class Defender : MonoBehaviour, IDamageable
     [Tooltip("Current health (read-only while playing, resets on Start)")]
     [SerializeField] private int currentHealth;
     private bool isDestroyed = false;
+
+    [Header("Cost")]
+    [Tooltip("How many resources it costs to build this defender.")]
+    [SerializeField] private int cost = 50;
+    public int Cost => cost;
     
     [Header("Targeting")]
     [SerializeField] private float range = 8f;

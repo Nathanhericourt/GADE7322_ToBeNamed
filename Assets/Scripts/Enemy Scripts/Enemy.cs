@@ -18,6 +18,10 @@ public class Enemy : MonoBehaviour, IDamageable
     [Tooltip("Seconds between each attack once something is in range")]
     public float attackInterval = 1f;
 
+    [Header("Reward")]
+    [Tooltip("Resources given to the player when a enemy is destroyed")]
+    public int resourceReward = 10;
+
     [Header("Defender Detection")]
     [Tooltip("How close a defender needs to be for this enemy to stop and fight it instead of walking past")]
     public float defenderDetectRange = 1.5f;
@@ -186,6 +190,11 @@ public class Enemy : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        if(ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.Add(resourceReward);
+        }
+        
         Destroy(gameObject);
     }
 }
