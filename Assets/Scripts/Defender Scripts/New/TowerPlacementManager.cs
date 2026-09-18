@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Handles player input for selecting and placing towers on
@@ -55,12 +56,12 @@ public class TowerPlacementManager : MonoBehaviour
                 currentHoverSpot.SetHover(true);
         }
 
-        if (Input.GetMouseButtonDown(0) && currentHoverSpot != null)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && currentHoverSpot != null)
         {
             TryBuildOn(currentHoverSpot);
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
         {
             CancelSelection();
         }
@@ -68,7 +69,10 @@ public class TowerPlacementManager : MonoBehaviour
 
     private PlacementSpot GetSpotUnderCursor()
     {
-        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+        if (Mouse.current == null)
+            return null;
+
+        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance, placementSpotLayer))
         {

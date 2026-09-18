@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 831389685283226732}
   - component: {fileID: 6031311139984318267}
   - component: {fileID: 744399623054548673}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: GenCubeTest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
