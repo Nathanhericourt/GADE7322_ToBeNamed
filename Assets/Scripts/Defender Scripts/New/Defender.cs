@@ -13,6 +13,13 @@ public class Defender : MonoBehaviour, IDamageable
     [SerializeField] private int maxHealth = 50;
     [Tooltip("Current health (read-only while playing, resets on Start)")]
     [SerializeField] private int currentHealth;
+
+    [Header("Health Bar")]
+    [SerializeField] private GameObject healthBarPrefab;
+    [SerializeField] private float healthBarHeight = 2f;
+
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
     private bool isDestroyed = false;
 
     [Header("Cost")]
@@ -44,6 +51,22 @@ public class Defender : MonoBehaviour, IDamageable
     private void Start()
     {
         currentHealth = maxHealth;
+        CreateHealthBar();
+    }
+
+    private void CreateHealthBar()
+    {
+        if (healthBarPrefab == null)
+            return;
+
+        GameObject bar = Instantiate(healthBarPrefab);
+
+        WorldHealthBar healthBar = bar.GetComponent<WorldHealthBar>();
+
+        if (healthBar != null)
+        {
+            healthBar.SetTarget(transform, healthBarHeight);
+        }
     }
 
     // Called by anything that damages this defender (e.g. Enemy.cs),

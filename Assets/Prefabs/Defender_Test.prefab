@@ -130,6 +130,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Defender
   maxHealth: 50
   currentHealth: 0
+  healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
+  healthBarHeight: 2
+  cost: 50
   range: 8
   enemyLayer:
     serializedVersion: 2

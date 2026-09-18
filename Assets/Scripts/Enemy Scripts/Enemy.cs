@@ -29,7 +29,14 @@ public class Enemy : MonoBehaviour, IDamageable
     [Tooltip("Defenders must be tagged with this exact tag so enemies can find them (create this Tag in Unity's Tag Manager)")]
     public string defenderTag = "Defender";
 
+    [Header("Health Bar")]
+    [SerializeField] private GameObject healthBarPrefab;
+    [SerializeField] private float healthBarHeight = 2f;
+
     private int currentHealth;
+
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
     private NavMeshAgent agent;
 
     private List<Vector3> waypoints = new List<Vector3>();
@@ -42,6 +49,7 @@ public class Enemy : MonoBehaviour, IDamageable
     private void Start()
     {
         currentHealth = maxHealth;
+        CreateHealthBar();
 
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
@@ -70,6 +78,21 @@ public class Enemy : MonoBehaviour, IDamageable
             {
                 Debug.LogWarning("Enemy could not find a Tower to path towards.");
             }
+        }
+    }
+
+    private void CreateHealthBar()
+    {
+        if (healthBarPrefab == null)
+            return;
+
+        GameObject bar = Instantiate(healthBarPrefab);
+
+        WorldHealthBar healthBar = bar.GetComponent<WorldHealthBar>();
+
+    if (healthBar != null)
+        {
+            healthBar.SetTarget(transform, healthBarHeight);
         }
     }
 
