@@ -84,8 +84,22 @@ public class TowerPlacementManager : MonoBehaviour
 
     private void TryBuildOn(PlacementSpot spot)
     {
+        Defender defenderScript = selectedTowerPrefab.GetComponent<Defender>();
+        int cost = defenderScript != null ? defenderScript.Cost : 0;
+
+        if(ResourceManager.Instance != null && !ResourceManager.Instance.CanAfford(cost))
+        {
+            Debug.Log("Not enough resources to build this tower.");
+            return;
+        }
+
         if (spot.TryPlaceTower(selectedTowerPrefab, out GameObject tower))
         {
+            if (ResourceManager.Instance != null)
+            {
+                ResourceManager.Instance.TrySpend(cost);
+            }
+            
             selectedTowerPrefab = null;
             spot.SetHover(false);
             currentHoverSpot = null;
