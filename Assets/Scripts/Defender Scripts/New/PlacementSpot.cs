@@ -17,10 +17,15 @@ public class PlacementSpot : MonoBehaviour
 
     private MaterialPropertyBlock propBlock;
     private static readonly int ColorId = Shader.PropertyToID("_Color");
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
     private void Awake()
     {
         propBlock = new MaterialPropertyBlock();
+
+        if (indicatorRenderer == null)
+            indicatorRenderer = GetComponent<Renderer>();
+
         RefreshVisual();
     }
 
@@ -65,6 +70,7 @@ public class PlacementSpot : MonoBehaviour
         if (indicatorRenderer == null) return;
         indicatorRenderer.GetPropertyBlock(propBlock);
         propBlock.SetColor(ColorId, color);
+        propBlock.SetColor(BaseColorId, color);
         indicatorRenderer.SetPropertyBlock(propBlock);
     }
 }

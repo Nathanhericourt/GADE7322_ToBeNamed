@@ -33,14 +33,17 @@ public class GenerationGrid : MonoBehaviour
 
     private List<Vector3> blockPositions = new List<Vector3>();
 
+    private void Awake()
+    {
+        // Reset before other scene objects begin waiting for terrain generation.
+        TerrainReady = false;
+    }
+
     void Start()
     {
         // FIX 3: randomize so the terrain is different every new game
         noiseOffsetX = Random.Range(0f, 10000f);
         noiseOffsetZ = Random.Range(0f, 10000f);
-
-        // FIX 2: reset the flag at the start of each run
-        TerrainReady = false;
 
         for(int x = 0; x < worldSizeX; x++)
         {

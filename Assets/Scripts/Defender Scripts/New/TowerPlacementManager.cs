@@ -69,14 +69,19 @@ public class TowerPlacementManager : MonoBehaviour
 
     private PlacementSpot GetSpotUnderCursor()
     {
-        if (Mouse.current == null)
+        if (Mouse.current == null || mainCamera == null)
             return null;
 
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRaycastDistance);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance, placementSpotLayer))
+        System.Array.Sort(hits, (first, second) => first.distance.CompareTo(second.distance));
+
+        foreach (RaycastHit hit in hits)
         {
-            return hit.collider.GetComponentInParent<PlacementSpot>();
+            PlacementSpot spot = hit.collider.GetComponentInParent<PlacementSpot>();
+            if (spot != null)
+                return spot;
         }
 
         return null;
