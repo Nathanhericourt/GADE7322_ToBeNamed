@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        tower = GetComponent<Tower>();
+        tower = FindAnyObjectByType<Tower>();
 
         if (tower == null)
         {
