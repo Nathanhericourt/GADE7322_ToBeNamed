@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -7,10 +7,10 @@ public class UIManager : MonoBehaviour
 
     [Header("HUD")]
     [Tooltip("Players current resource total displayed in the UI")]
-    public Text resourceText;
+    public TMP_Text resourceText;
 
     [Tooltip("Towers current health displayed in the UI")]
-    public Text towerHealthText;
+    public TMP_Text towerHealthText;
 
     [Header("Game Over")]
     [Tooltip("The Game Over UI panel")]
