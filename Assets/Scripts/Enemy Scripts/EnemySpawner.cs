@@ -18,24 +18,7 @@ public class EnemySpawner : MonoBehaviour
 
     private List<EnemyPath> activePaths = new List<EnemyPath>();
     private float spawnTimer = 0f;
-
-    private void Start()
-    {
-        if (paths != null && paths.Count > 0)
-        {
-            activePaths = paths;
-        }
-        else
-        {
-            // Not a manual list, it automatically finds every EnemyPath
-            activePaths = new List<EnemyPath>(FindObjectsByType<EnemyPath>(FindObjectsInactive.Exclude));
-
-            if (activePaths.Count == 0)
-            {
-                Debug.LogWarning("EnemySpawner found no EnemyPath objects in the scene at Start.");
-            }
-        }
-    }
+    private bool pathsCollected = false;
 
     private void Update()
     {
@@ -45,12 +28,39 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
+        if (!pathsCollected)
+        {
+            CollectPaths();
+            pathsCollected = true;
+        }
+
         spawnTimer += Time.deltaTime;
 
         if (spawnTimer >= spawnInterval)
         {
             spawnTimer = 0f;
             SpawnEnemy();
+        }
+    }
+
+    private void CollectPaths()
+    {
+        if (paths != null && paths.Count > 0)
+        {
+            activePaths = paths;
+        }
+        else
+        {
+            activePaths = new List<EnemyPath>(FindObjectsByType<EnemyPath>(FindObjectsInactive.Exclude));
+
+            if (activePaths.Count == 0)
+            {
+                Debug.LogWarning("EnemySpawner found no EnemyPath objects after terrain generation.");
+            }
+            else
+            {
+                Debug.Log($"EnemySpawner: found {activePaths.Count} paths, spawning begins.");
+            }
         }
     }
 

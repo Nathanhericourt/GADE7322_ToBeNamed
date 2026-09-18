@@ -18,6 +18,10 @@ public class GenerationGrid : MonoBehaviour
     [Tooltip("Drag the GameObject with the NavMeshSurface component here (AI Navigation package)")]
     public NavMeshSurface navMeshSurface;
 
+    [Header("Runtime Paths")]
+    [Tooltip("Drag the GameObject with the Pathgenerator component here. Paths + tower are created after the cubes spawn and BEFORE the NavMesh bake, so the spawner and placement scanner only ever see a finished world.")]
+    public Pathgenerator pathGenerator;
+
     private int worldSizeX = 25;
     private int worldSizeZ = 25;
     private int noiseHeight = 8;
@@ -60,6 +64,15 @@ public class GenerationGrid : MonoBehaviour
     {
         // let physics register the freshly spawned block colliders first
         yield return new WaitForFixedUpdate();
+
+        if (pathGenerator != null)
+        {
+            pathGenerator.GeneratePathways();
+        }
+        else
+        {
+            Debug.LogWarning("[GenerationGrid] No Pathgenerator assigned - the game will use whatever paths are already in the scene.");
+        }
 
         if (navMeshSurface != null)
         {

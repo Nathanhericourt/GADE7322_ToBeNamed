@@ -28,15 +28,26 @@ public class UIManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        tower = FindAnyObjectByType<Tower>();
+        Tower.OnTowerSpawned += HandleTowerSpawned;
 
         if (tower == null)
-        {
-            Debug.LogError("No Tower found in the scene.");
-        }
+            tower = FindAnyObjectByType<Tower>();
+    }
 
+    private void OnDisable()
+    {
+        Tower.OnTowerSpawned -= HandleTowerSpawned;
+    }
+
+    private void HandleTowerSpawned(Tower spawnedTower)
+    {
+        tower = spawnedTower;
+    }
+
+    private void Start()
+    {
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
     }

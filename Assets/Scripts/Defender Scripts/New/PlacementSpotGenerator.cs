@@ -47,7 +47,6 @@ public class PlacementSpotGenerator : MonoBehaviour
     private void Start()
     {
         StartCoroutine(WaitForTerrainThenScan());
-        GenerateSpots();
     }
 
     private IEnumerator WaitForTerrainThenScan()

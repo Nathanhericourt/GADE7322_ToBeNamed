@@ -28,6 +28,12 @@ public class Tower : MonoBehaviour, IDamageable
     private bool isDestroyed = false;
     private float attackTimer = 0f;
 
+    public static event System.Action<Tower> OnTowerSpawned;
+
+    private void Awake()
+    {
+        OnTowerSpawned?.Invoke(this);
+    }
     private void Start()
     {
         currentHealth = maxHealth;
