@@ -8,6 +8,9 @@ public class Tower : MonoBehaviour, IDamageable
 
     [Tooltip("Current health (read-only while playing, resets on Start)")]
     public int currentHealth;
+    
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
 
     [Header("Attack")]
     [Tooltip("How far the tower can reach to attack enemies")]
@@ -84,5 +87,10 @@ public class Tower : MonoBehaviour, IDamageable
     {
         isDestroyed = true;
         Debug.Log("Tower destroyed! GAME OVER.");
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowGameOver();
+        }
     }
 }
