@@ -41,7 +41,7 @@ public class Pathgenerator : MonoBehaviour
     {
         if (terrainRoot == null)
         {
-            Debug.LogError("[PathGenerator] Assign both Terrain Root and Tower Point first.");
+            Debug.LogError("[PathGenerator] Assign the Terrain Root first.");
             return;
         }
     
@@ -56,14 +56,14 @@ public class Pathgenerator : MonoBehaviour
             return;
         }
 
-        Vector3 towerPos = PlacedTower.transform.position;
+        Vector3 towerPosition = PlacedTower.transform.position;
 
         float angleOffset = Random.Range(0f, 360f);
         
         for (int i = 0; i < pathCount; i++)
         {
             Vector3 edgeStart = GetEdgeStartPoint(terrainBounds, i, angleOffset);
-            CreatePath(i, edgeStart, towerPoint.position);
+            CreatePath(i, edgeStart, towerPosition);
         }
  
         Debug.Log($"[PathGenerator] Generated {pathCount} pathways towards the tower.");
