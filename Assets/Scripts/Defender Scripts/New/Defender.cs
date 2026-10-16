@@ -8,11 +8,13 @@ using UnityEngine;
 /// </summary>
 public class Defender : MonoBehaviour, IDamageable
 {
+    public virtual string DisplayName => "Defender";
+
     [Header("Health")]
     [Tooltip("The defender's starting and maximum health")]
-    [SerializeField] private int maxHealth = 50;
+    [SerializeField] protected int maxHealth = 50;
     [Tooltip("Current health (read-only while playing, resets on Start)")]
-    [SerializeField] private int currentHealth;
+    [SerializeField] protected int currentHealth;
 
     [Header("Health Bar")]
     [SerializeField] private GameObject healthBarPrefab;
@@ -24,11 +26,11 @@ public class Defender : MonoBehaviour, IDamageable
 
     [Header("Cost")]
     [Tooltip("How many resources it costs to build this defender.")]
-    [SerializeField] private int cost = 50;
+    [SerializeField] protected int cost = 50;
     public int Cost => cost;
     
     [Header("Targeting")]
-    [SerializeField] private float range = 8f;
+    [SerializeField] protected float range = 8f;
     [SerializeField] private LayerMask enemyLayer;
     [Tooltip("How often (seconds) the tower re-scans for the closest target.")]
     [SerializeField] private float targetUpdateInterval = 0.2f;
@@ -36,19 +38,28 @@ public class Defender : MonoBehaviour, IDamageable
     [Header("Aiming")]
     [Tooltip("Part of the tower that rotates to face the target (e.g. the turret head). Leave empty to rotate the whole tower.")]
     [SerializeField] private Transform turretPivot;
-    [SerializeField] private float turnSpeedDegPerSec = 360f;
+    [SerializeField] protected float turnSpeedDegPerSec = 360f;
 
     [Header("Firing")]
-    [SerializeField] private float fireRate = 1f; // shots per second
-    [SerializeField] private Transform firePoint;
-    [SerializeField] private GameObject projectilePrefab;
-    [SerializeField] private float damage = 10f;
+    [SerializeField] protected float fireRate = 1f; // shots per second
+    [SerializeField] protected Transform firePoint;
+    [SerializeField] protected GameObject projectilePrefab;
+    [SerializeField] protected float damage = 10f;
 
-    private Transform currentTarget;
+    protected Transform currentTarget;
     private float fireCooldown;
     private float targetScanCooldown;
 
-    private void Start()
+    protected virtual void Reset()
+    {
+        ApplyTypeDefaults();
+    }
+
+    protected virtual void ApplyTypeDefaults()
+    {
+    }
+
+    protected virtual void Start()
     {
         currentHealth = maxHealth;
         CreateHealthBar();
@@ -185,7 +196,7 @@ public class Defender : MonoBehaviour, IDamageable
         return angle < 5f; // small tolerance so it doesn't need to be pixel-perfect
     }
 
-    private void Fire()
+    protected virtual void Fire()
     {
         if (projectilePrefab == null || firePoint == null)
             return;

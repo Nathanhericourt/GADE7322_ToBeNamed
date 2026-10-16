@@ -4,65 +4,97 @@ using TMPro;
 
 public class BuildDefenderUI : MonoBehaviour
 {
-    [Header("Defender")]
-    [SerializeField] private GameObject defenderPrefab;
-
-    [Header("UI")]
-    [SerializeField] private TMP_Text costText;
-    [SerializeField] private Button buildButton;
-
     [Header("Placement")]
     [SerializeField] private TowerPlacementManager placementManager;
 
-    private Defender defender;
+    [Header("Heavy Defender")]
+    [SerializeField] private GameObject defenderPrefab;
+    [SerializeField] private TMP_Text costText;
+    [SerializeField] private Button buildButton;
+    [SerializeField] private TMP_Text buildButtonLabel;
+
+    [Header("Rapid Defender")]
+    [SerializeField] private GameObject secondDefenderPrefab;
+    [SerializeField] private TMP_Text secondCostText;
+    [SerializeField] private Button secondBuildButton;
+    [SerializeField] private TMP_Text secondBuildButtonLabel;
+
+    private Defender firstDefender;
+    private Defender secondDefender;
 
     private void Start()
     {
-        if (defenderPrefab != null)
-            defender = defenderPrefab.GetComponent<Defender>();
-
-        UpdateCostText();
+        firstDefender = GetDefender(defenderPrefab);
+        secondDefender = GetDefender(secondDefenderPrefab);
 
         if (buildButton != null)
-            buildButton.onClick.AddListener(BuildDefender);
+            buildButton.onClick.AddListener(() => Build(defenderPrefab, firstDefender));
+
+        if (secondBuildButton != null)
+            secondBuildButton.onClick.AddListener(() => Build(secondDefenderPrefab, secondDefender));
+
+        RefreshLabels();
     }
 
     private void Update()
     {
-        UpdateButtonState();
+        UpdateButtonState(buildButton, firstDefender);
+        UpdateButtonState(secondBuildButton, secondDefender);
+        RefreshLabels();
     }
 
-    private void UpdateCostText()
+    private static Defender GetDefender(GameObject prefab)
     {
-        if (costText == null || defender == null)
-            return;
-
-        costText.text = "Cost: " + defender.Cost;
+        return prefab != null ? prefab.GetComponent<Defender>() : null;
     }
 
-    private void UpdateButtonState()
+    private void RefreshLabels()
     {
-        if (buildButton == null || defender == null)
-            return;
-
-        if (ResourceManager.Instance == null)
-            return;
-
-        buildButton.interactable =
-            ResourceManager.Instance.CanAfford(defender.Cost);
+        SetCostLabel(costText, firstDefender, secondDefender);
+        SetCostLabel(secondCostText, secondDefender, null);
+        SetButtonLabel(buildButtonLabel, firstDefender);
+        SetButtonLabel(secondBuildButtonLabel, secondDefender);
     }
 
-    private void BuildDefender()
+    private static void SetCostLabel(TMP_Text label, Defender defender, Defender extraDefender)
     {
-        if (placementManager == null || defenderPrefab == null)
+        if (label == null)
             return;
 
-        if (ResourceManager.Instance != null &&
-            !ResourceManager.Instance.CanAfford(defender.Cost))
+        if (defender != null && extraDefender != null)
         {
+            label.text = defender.DisplayName + ": " + defender.Cost + "  |  " + extraDefender.DisplayName + ": " + extraDefender.Cost;
             return;
         }
 
-        placementManager.SelectTowerToBuild(defenderPrefab);
+        if (defender != null)
+            label.text = "Cost: " + defender.Cost;
+    }
+
+    private static void SetButtonLabel(TMP_Text label, Defender defender)
+    {
+        if (label == null || defender == null)
+            return;
+
+        label.text = "BUILD " + defender.DisplayName.ToUpperInvariant();
+    }
+
+    private static void UpdateButtonState(Button button, Defender defender)
+    {
+        if (button == null || defender == null || ResourceManager.Instance == null)
+            return;
+
+        button.interactable = ResourceManager.Instance.CanAfford(defender.Cost);
+    }
+
+    private void Build(GameObject prefab, Defender defender)
+    {
+        if (placementManager == null || prefab == null || defender == null)
+            return;
+
+        if (ResourceManager.Instance != null && !ResourceManager.Instance.CanAfford(defender.Cost))
+            return;
+
+        placementManager.SelectTowerToBuild(prefab);
     }
 }

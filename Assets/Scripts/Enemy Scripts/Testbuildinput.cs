@@ -1,26 +1,34 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // add this
+using UnityEngine.InputSystem;
 
 // Temp Test Script
-// Because theres no UI button yet to select which defender to build
-// lets you press "1" to select the Defender prefab for placement,
-// so the click-to-build flow can be tested right now.
-// Delete this once the UI button calls TowerPlacementManager.SelectTowerToBuild() instead.
+// Press 1 to select the Heavy defender, 2 to select the Rapid defender.
 public class TestBuildInput : MonoBehaviour
 {
-    [Tooltip("The Defender prefab to select when pressing 1")]
+    [Tooltip("The Heavy Defender prefab to select when pressing 1")]
     public GameObject defenderPrefab;
+
+    [Tooltip("The Rapid Defender prefab to select when pressing 2")]
+    public GameObject secondDefenderPrefab;
 
     [Tooltip("Drag the GameObject with TowerPlacementManager on it here")]
     public TowerPlacementManager placementManager;
 
     private void Update()
     {
-        // New Input System equivalent of Input.GetKeyDown(KeyCode.Alpha1)
-        if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame)
+        if (placementManager == null || Keyboard.current == null)
+            return;
+
+        if (defenderPrefab != null && Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             placementManager.SelectTowerToBuild(defenderPrefab);
-            Debug.Log("Defender selected - click a placement spot to build it.");
+            Debug.Log("Heavy defender selected - click a placement spot to build it.");
+        }
+
+        if (secondDefenderPrefab != null && Keyboard.current.digit2Key.wasPressedThisFrame)
+        {
+            placementManager.SelectTowerToBuild(secondDefenderPrefab);
+            Debug.Log("Rapid defender selected - click a placement spot to build it.");
         }
     }
 }
