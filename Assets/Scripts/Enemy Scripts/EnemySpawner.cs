@@ -6,8 +6,8 @@ using UnityEngine.AI;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Enemy Setup")]
-    [Tooltip("The enemy prefab to spawn (must have the Enemy script on it)")]
-    public GameObject enemyPrefab;
+    [Tooltip("Enemy prefabs to spawn (each must have the Enemy script, or a subclass of it, on it). Picked at random for now - the wave system will replace this.")]
+    public List<GameObject> enemyPrefabs = new List<GameObject>();
 
     [Header("Spawn Settings")]
     [Tooltip("Time in seconds between each enemy spawning")]
@@ -66,9 +66,9 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemy()
     {
-        if (enemyPrefab == null || activePaths.Count == 0)
+        if (enemyPrefabs == null || enemyPrefabs.Count == 0 || activePaths.Count == 0)
         {
-            Debug.LogWarning("EnemySpawner is missing an enemy prefab or has no paths available.");
+            Debug.LogWarning("EnemySpawner is missing enemy prefabs or has no paths available.");
             return;
         }
 
@@ -94,7 +94,8 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        GameObject newEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        GameObject prefabToSpawn = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
+        GameObject newEnemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
 
         // Gives the path to the enemy
         if (newEnemy.TryGetComponent(out Enemy enemy))

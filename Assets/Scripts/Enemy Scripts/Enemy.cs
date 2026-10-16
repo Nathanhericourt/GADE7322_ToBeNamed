@@ -37,14 +37,14 @@ public class Enemy : MonoBehaviour, IDamageable
 
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
-    private NavMeshAgent agent;
+    protected NavMeshAgent agent;
 
     private List<Vector3> waypoints = new List<Vector3>();
     private int currentWaypointIndex = 0;
 
-    private IDamageable currentTarget;
-    private bool reachedTower = false;
-    private float attackTimer = 0f;
+    protected IDamageable currentTarget;
+    protected bool reachedTower = false;
+    protected float attackTimer = 0f;
 
     private void Start()
     {
@@ -107,7 +107,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (agent == null || !agent.isOnNavMesh) return;
 
@@ -137,7 +137,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    private void FollowPath()
+    protected void FollowPath()
     {
         if (agent.pathPending) return;
 
@@ -166,7 +166,7 @@ public class Enemy : MonoBehaviour, IDamageable
     }
 
     // Checks a small radius around the enemy for the Defender
-    private IDamageable FindNearbyDefender()
+    protected virtual IDamageable FindNearbyDefender()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, defenderDetectRange);
 
@@ -185,7 +185,7 @@ public class Enemy : MonoBehaviour, IDamageable
         return null;
     }
 
-    private void Attack()
+    protected virtual void Attack()
     {
         if (currentTarget == null)
         {
