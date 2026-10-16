@@ -245,6 +245,7 @@ public class Enemy : MonoBehaviour, IDamageable
             ResourceManager.Instance.Add(resourceReward);
         }
         
+        WaveManager.NotifyEnemyKilled();
         Destroy(gameObject);
     }
 }

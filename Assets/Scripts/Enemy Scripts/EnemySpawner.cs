@@ -19,6 +19,7 @@ public class EnemySpawner : MonoBehaviour
     private List<EnemyPath> activePaths = new List<EnemyPath>();
     private float spawnTimer = 0f;
     private bool pathsCollected = false;
+    private int spawnedThisWave;
 
     private void Update()
     {
@@ -34,13 +35,31 @@ public class EnemySpawner : MonoBehaviour
             pathsCollected = true;
         }
 
+        if (WaveManager.Instance == null || !WaveManager.Instance.IsSpawning)
+        {
+            return;
+        }
+            
+        if (spawnedThisWave >= WaveManager.Instance.EnemiesThisWave)
+        {
+            return;
+        }
+            
+
         spawnTimer += Time.deltaTime;
 
         if (spawnTimer >= spawnInterval)
         {
             spawnTimer = 0f;
             SpawnEnemy();
+            spawnedThisWave++;
         }
+    }
+
+    public void ResetForNewWave()
+    {
+        spawnedThisWave = 0;
+        spawnTimer = 0f;
     }
 
     private void CollectPaths()

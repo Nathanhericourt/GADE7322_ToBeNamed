@@ -22,8 +22,11 @@ public class GenerationGrid : MonoBehaviour
     [Tooltip("Drag the GameObject with the Pathgenerator component here. Paths + tower are created after the cubes spawn and BEFORE the NavMesh bake, so the spawner and placement scanner only ever see a finished world.")]
     public Pathgenerator pathGenerator;
 
-    private int worldSizeX = 25;
-    private int worldSizeZ = 25;
+    [Header("Map Size")]
+    [SerializeField] private int worldSizeX = 40;
+    [SerializeField] private int worldSizeZ = 40;
+    
+
     private int noiseHeight = 8;
     private float gridOffset = 1f;
 
@@ -92,7 +95,7 @@ public class GenerationGrid : MonoBehaviour
 
     private void SpawnObject()
     {
-        for(int c = 0; c <24; c++)
+        for(int c = 0; c <50; c++)
         {
             GameObject toPlaceObject = Instantiate(objectToSpawn, ObjectSpawnLocation(), Quaternion.identity);
 

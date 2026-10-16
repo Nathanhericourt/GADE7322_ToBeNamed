@@ -12,6 +12,9 @@ public class UIManager : MonoBehaviour
     [Tooltip("Towers current health displayed in the UI")]
     public TMP_Text towerHealthText;
 
+    [Tooltip("Current wave and kill progress")]
+    public TMP_Text waveText;
+
     [Header("Game Over")]
     [Tooltip("The Game Over UI panel")]
     public GameObject gameOverPanel;
@@ -63,6 +66,14 @@ public class UIManager : MonoBehaviour
         {
             towerHealthText.text = "Tower Health: " + tower.CurrentHealth + " / " + tower.MaxHealth;
         }
+
+        if (waveText != null && WaveManager.Instance != null)
+        {
+            waveText.text = "Wave " + WaveManager.Instance.WaveNumber
+                + "  " + WaveManager.Instance.EnemiesKilled
+                + "/" + WaveManager.Instance.EnemiesThisWave;
+        }
+
     }
 
     //Called when towers health reaches 0
