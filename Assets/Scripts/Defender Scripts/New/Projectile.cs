@@ -11,10 +11,10 @@ public class Projectile : MonoBehaviour
     [SerializeField] private float speed = 20f;
     [SerializeField] private float hitDistance = 0.3f;
     [SerializeField] private float lifeTime = 5f;
-    [SerializeField] private GameObject hitEffectPrefab;
+    [SerializeField] protected GameObject hitEffectPrefab;
 
     private Transform target;
-    private float damage;
+    protected float damage;
     private Vector3 lastKnownDirection = Vector3.forward;
 
     public void Launch(Transform newTarget, float damageAmount)
@@ -42,7 +42,7 @@ public class Projectile : MonoBehaviour
         transform.forward = lastKnownDirection;
     }
 
-    private void HitTarget(Transform hitTarget)
+    protected void HitTarget(Transform hitTarget)
     {
         // Swap this for your actual enemy/health interface.
         Enemy enemy = hitTarget.GetComponent<Enemy>();
