@@ -46,6 +46,10 @@ public class Enemy : MonoBehaviour, IDamageable
     protected bool reachedTower = false;
     protected float attackTimer = 0f;
 
+    // Slow effect
+    private float slowTimer = 0f;
+    private float currentSlowMultiplier = 1f;
+
     private void Start()
     {
         currentHealth = maxHealth;
@@ -208,6 +212,29 @@ public class Enemy : MonoBehaviour, IDamageable
         if (currentHealth <= 0)
         {
             Die();
+        }
+    }
+
+    // Slows the enemy's movement for a short time
+    public void ApplySlow(float speedMultiplier, float duration)
+    {
+        if (agent == null) return;
+
+        currentSlowMultiplier = slowTimer > 0f ? Mathf.Min(currentSlowMultiplier, speedMultiplier) : speedMultiplier;
+        slowTimer = Mathf.Max(slowTimer, duration);
+        agent.speed = moveSpeed * currentSlowMultiplier;
+    }
+
+    // Counts the slow down timer down and resets the speed when it runs out
+    private void LateUpdate()
+    {
+        if (slowTimer <= 0f) return;
+
+        slowTimer -= Time.deltaTime;
+        if (slowTimer <= 0f && agent != null)
+        {
+            currentSlowMultiplier = 1f;
+            agent.speed = moveSpeed;
         }
     }
 
