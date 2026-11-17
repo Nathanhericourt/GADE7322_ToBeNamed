@@ -128,22 +128,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c4e1a92b8d64f1e9a3c5d0e6f8124ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeavyDefender
-  maxHealth: 180
+  maxHealth: 220
   currentHealth: 0
   healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
   healthBarHeight: 2.4
   cost: 90
-  range: 9
+  range: 8
   enemyLayer:
     serializedVersion: 2
     m_Bits: 8
   targetUpdateInterval: 0.2
   turretPivot: {fileID: 0}
   turnSpeedDegPerSec: 90
-  fireRate: 0.35
+  fireRate: 0.5
   firePoint: {fileID: 8472090999748435002}
   projectilePrefab: {fileID: 1000000000000001, guid: 82f48f3bedd23034c970342faca57d28, type: 3}
-  damage: 40
+  damage: 30
 --- !u!1 &8472090999748435001
 GameObject:
   m_ObjectHideFlags: 0

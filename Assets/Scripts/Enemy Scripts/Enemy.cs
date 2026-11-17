@@ -22,12 +22,34 @@ public class Enemy : MonoBehaviour, IDamageable
     [Tooltip("Resources given to the player when a enemy is destroyed")]
     public int resourceReward = 10;
 
-    [Header("Defender Detection")]
-    [Tooltip("How close a defender needs to be for this enemy to stop and fight it instead of walking past")]
-    public float defenderDetectRange = 1.5f;
+    [Header("Defender Fighting")]
+    [Tooltip("If a defender gets this close (gap between the enemy's body and the defender), the enemy leaves the path to go and attack it")]
+    public float defenderDetectRange = 6f;
 
-    [Tooltip("Defenders must be tagged with this exact tag so enemies can find them (create this Tag in Unity's Tag Manager)")]
+    [Tooltip("When a defender shoots this enemy, the enemy will go after any defender within this range")]
+    public float retaliateRange = 12f;
+
+    [Tooltip("How many seconds after being shot the enemy keeps looking for a defender to retaliate against")]
+    public float retaliateDuration = 4f;
+
+    [Tooltip("How close (gap between bodies) the enemy must be before it stops walking and attacks the defender")]
+    public float attackReach = 1.2f;
+
+    [Tooltip("If the defender ends up further away than this, the enemy gives up and goes back to the path")]
+    public float chaseGiveUpRange = 14f;
+
+    [Tooltip("Max seconds spent walking towards a defender without reaching it, then the enemy gives up")]
+    public float maxChaseTime = 12f;
+
+    [Tooltip("No longer used - defenders are found automatically now. Kept so old prefab settings don't break.")]
     public string defenderTag = "Defender";
+
+    [Header("Pathfinding")]
+    [Tooltip("A waypoint counts as reached when the enemy is this close to it (added to the enemy's body size). Stops big enemies getting stuck just short of a waypoint.")]
+    public float waypointReachDistance = 1.5f;
+
+    [Tooltip("If the enemy hasn't really moved for this many seconds while walking, it tries to free itself")]
+    public float stuckCheckTime = 1.5f;
 
     [Header("Health Bar")]
     [SerializeField] private GameObject healthBarPrefab;
@@ -58,9 +80,25 @@ public class Enemy : MonoBehaviour, IDamageable
     private Tower cachedTower;
     private Collider cachedTowerCollider;
 
+    // Size of the enemy's body, used to measure how far away a defender really is
+    private float bodyRadius = 0.5f;
+
     // Slow effect
     private float slowTimer = 0f;
     private float currentSlowMultiplier = 1f;
+
+    // Fighting defenders
+    private Defender defenderTarget;
+    private bool fightingDefender = false;
+    private float defenderScanTimer = 0f;
+    private float chaseTimer = 0f;
+    private float chaseRepathTimer = 0f;
+    private float hitAggroTimer = 0f;
+
+    // Stuck detection
+    private float stuckTimer = 0f;
+    private int stuckStrikes = 0;
+    private Vector3 lastStuckCheckPosition;
 
     private void Start()
     {
@@ -73,6 +111,11 @@ public class Enemy : MonoBehaviour, IDamageable
         // Enemies walk through each other, so a slow Brute can never block a fast Runner
         agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
+        // Don't crawl to a stop at every waypoint - this script decides when a waypoint is reached
+        agent.autoBraking = false;
+
+        FitAgentToNavMesh();
+
         // If agent doesnt land on the NavMesh
         if (!agent.isOnNavMesh)
         {
@@ -82,21 +125,32 @@ public class Enemy : MonoBehaviour, IDamageable
         }
 
         // Follow the assigned path for the tower
-        if (waypoints.Count > 0)
+        if (waypoints.Count == 0 && GetTower() == null)
         {
-            agent.SetDestination(waypoints[0]);
+            Debug.LogWarning("Enemy could not find a Tower to path towards.");
+        }
+
+        ResumePath();
+    }
+
+    // This keeps the agent's footprint no bigger than the baked one.
+    // The enemy still LOOKS the same size.
+    //
+    //
+    private void FitAgentToNavMesh()
+    {
+        float scale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.z);
+        NavMeshBuildSettings baked = NavMesh.GetSettingsByID(agent.agentTypeID);
+        agent.radius = Mathf.Min(agent.radius, baked.agentRadius / scale);
+
+        Collider body = GetComponent<Collider>();
+        if (body != null)
+        {
+            bodyRadius = Mathf.Min(body.bounds.extents.x, body.bounds.extents.z);
         }
         else
         {
-            Tower tower = FindAnyObjectByType<Tower>();
-            if (tower != null)
-            {
-                agent.SetDestination(tower.transform.position);
-            }
-            else
-            {
-                Debug.LogWarning("Enemy could not find a Tower to path towards.");
-            }
+            bodyRadius = 0.5f * scale;
         }
     }
 
@@ -126,26 +180,31 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
+    // Called by the WaveManager right after the enemy spawns, so later waves are harder
+    public void ApplyWaveScaling(float healthMultiplier, float damageMultiplier, float speedMultiplier, float rewardMultiplier)
+    {
+        maxHealth = Mathf.RoundToInt(maxHealth * healthMultiplier);
+        attackDamage = Mathf.RoundToInt(attackDamage * damageMultiplier);
+        moveSpeed = moveSpeed * speedMultiplier;
+        resourceReward = Mathf.RoundToInt(resourceReward * rewardMultiplier);
+    }
+
     protected virtual void Update()
     {
         if (agent == null || !agent.isOnNavMesh) return;
 
-        // A defender blocking the way nearby always gets fought first
-        IDamageable nearbyDefender = FindNearbyDefender();
-        if (nearbyDefender != null)
+        if (hitAggroTimer > 0f)
         {
-            agent.isStopped = true;
-            currentTarget = nearbyDefender;
-            Attack();
+            hitAggroTimer -= Time.deltaTime;
+        }
+
+        // A defender that is close, or that is shooting us, gets dealt with first
+        if (HandleDefenders())
+        {
             return;
         }
 
-        // No defender nearby
-        if (agent.isStopped && !reachedTower)
-        {
-            agent.isStopped = false;
-        }
-
+        // No defender to deal with: walk the path, then attack the tower
         if (!reachedTower)
         {
             FollowPath();
@@ -156,6 +215,179 @@ public class Enemy : MonoBehaviour, IDamageable
             Attack();
         }
     }
+
+    // ---------------------------------------------------------------------
+    // Fighting defenders
+    // ---------------------------------------------------------------------
+
+    // Returns true while the enemy is busy with a defender (walking to it or attacking it)
+    protected bool HandleDefenders()
+    {
+        // The defender we were fighting has been destroyed
+        if (fightingDefender && defenderTarget == null)
+        {
+            EndDefenderFight();
+        }
+
+        // Not fighting anyone: look for a defender a few times a second
+        if (!fightingDefender)
+        {
+            defenderScanTimer -= Time.deltaTime;
+            if (defenderScanTimer > 0f) return false;
+            defenderScanTimer = 0.25f;
+
+            float range = defenderDetectRange;
+
+            // Recently shot: go after defenders from further away
+            if (hitAggroTimer > 0f)
+            {
+                range = Mathf.Max(defenderDetectRange, retaliateRange);
+            }
+
+            // Already at the tower: only fight defenders right next to us, never walk away from the tower
+            if (reachedTower)
+            {
+                range = attackReach;
+            }
+
+            Defender found = FindClosestDefender(range);
+            if (found == null) return false;
+
+            defenderTarget = found;
+            fightingDefender = true;
+            chaseTimer = 0f;
+            chaseRepathTimer = 0f;
+        }
+
+        float gap = GapTo(defenderTarget, out Vector3 closestPoint);
+
+        // Too far away now, give up and go back to the path
+        if (gap > chaseGiveUpRange)
+        {
+            EndDefenderFight();
+            defenderScanTimer = 5f;
+            return false;
+        }
+
+        // Close enough: stop and attack it
+        if (gap <= attackReach)
+        {
+            agent.isStopped = true;
+            FaceTowards(closestPoint);
+
+            currentTarget = defenderTarget;
+            Attack();
+            return true;
+        }
+
+        // The tower is reached: never walk away from it
+        if (reachedTower)
+        {
+            EndDefenderFight();
+            return false;
+        }
+
+        // Walk towards the defender, but not forever
+        chaseTimer += Time.deltaTime;
+        if (chaseTimer > maxChaseTime)
+        {
+            EndDefenderFight();
+            defenderScanTimer = 5f;
+            return false;
+        }
+
+        agent.isStopped = false;
+
+        chaseRepathTimer -= Time.deltaTime;
+        if (chaseRepathTimer <= 0f)
+        {
+            chaseRepathTimer = 0.3f;
+            SetDestinationSafe(closestPoint);
+        }
+
+        return true;
+    }
+
+    // The defender is dead or the enemy gave up: go back to what we were doing
+    private void EndDefenderFight()
+    {
+        fightingDefender = false;
+        defenderTarget = null;
+        hitAggroTimer = 0f;
+        currentTarget = null;
+
+        if (reachedTower)
+        {
+            agent.isStopped = true;
+        }
+        else
+        {
+            // Back onto the path, towards the tower
+            ResumePath();
+        }
+    }
+
+    // The closest defender whose edge is within range of this enemy's body
+    protected Defender FindClosestDefender(float range)
+    {
+        Defender closest = null;
+        float closestGap = range;
+
+        foreach (Defender defender in Defender.All)
+        {
+            if (defender == null) continue;
+
+            float gap = GapTo(defender, out Vector3 unused);
+            if (gap <= closestGap)
+            {
+                closestGap = gap;
+                closest = defender;
+            }
+        }
+
+        return closest;
+    }
+
+    // Distance between the edge of this enemy and the edge of the defender (flat, ignores height)
+    private float GapTo(Defender defender, out Vector3 closestPoint)
+    {
+        Collider defenderCollider = defender.BodyCollider;
+
+        if (defenderCollider != null)
+        {
+            closestPoint = defenderCollider.bounds.ClosestPoint(transform.position);
+        }
+        else
+        {
+            closestPoint = defender.transform.position;
+        }
+
+        Vector3 flat = closestPoint - transform.position;
+        flat.y = 0f;
+
+        return Mathf.Max(0f, flat.magnitude - bodyRadius);
+    }
+
+    private void FaceTowards(Vector3 point)
+    {
+        Vector3 direction = point - transform.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude < 0.001f) return;
+
+        Quaternion look = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, look, 360f * Time.deltaTime);
+    }
+
+    // Used by the Runner's hit and run: a defender close enough to strike while running past
+    protected virtual IDamageable FindNearbyDefender()
+    {
+        return FindClosestDefender(defenderDetectRange);
+    }
+
+    // ---------------------------------------------------------------------
+    // Following the path
+    // ---------------------------------------------------------------------
 
     protected void FollowPath()
     {
@@ -168,22 +400,127 @@ public class Enemy : MonoBehaviour, IDamageable
 
         if (agent.pathPending) return;
 
-        // Reached the current waypoint
-        if (agent.remainingDistance <= agent.stoppingDistance)
+        if (currentWaypointIndex >= waypoints.Count)
+        {
+            // Path is finished
+            ArriveAtTower();
+            return;
+        }
+
+        // Reached the current waypoint? Flat distance, so height differences and big
+        // bodies can't stop an enemy from ever "arriving"
+        Vector3 toWaypoint = waypoints[currentWaypointIndex] - transform.position;
+        toWaypoint.y = 0f;
+
+        bool closeEnough = toWaypoint.magnitude <= waypointReachDistance + bodyRadius;
+        bool agentArrived = agent.hasPath && agent.remainingDistance <= agent.stoppingDistance;
+
+        if (closeEnough || agentArrived)
         {
             currentWaypointIndex++;
 
             if (currentWaypointIndex < waypoints.Count)
             {
-                agent.SetDestination(waypoints[currentWaypointIndex]);
+                SetDestinationSafe(waypoints[currentWaypointIndex]);
             }
             else
             {
-                // Path is finished
                 ArriveAtTower();
+            }
+
+            return;
+        }
+
+        CheckIfStuck();
+    }
+
+    // Sends the agent to the current waypoint (or the tower if the path is finished)
+    private void ResumePath()
+    {
+        agent.isStopped = false;
+        stuckTimer = 0f;
+        lastStuckCheckPosition = transform.position;
+
+        if (currentWaypointIndex < waypoints.Count)
+        {
+            SetDestinationSafe(waypoints[currentWaypointIndex]);
+        }
+        else
+        {
+            Tower tower = GetTower();
+            if (tower != null)
+            {
+                SetDestinationSafe(tower.transform.position);
             }
         }
     }
+
+    // Moves the destination onto the NavMesh first, so the agent always gets a valid path
+    private void SetDestinationSafe(Vector3 point)
+    {
+        if (NavMesh.SamplePosition(point, out NavMeshHit hit, 4f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
+        else
+        {
+            agent.SetDestination(point);
+        }
+    }
+
+    // If the enemy hasn't really moved for a while it tries to free itself
+    private void CheckIfStuck()
+    {
+        stuckTimer += Time.deltaTime;
+        if (stuckTimer < stuckCheckTime) return;
+        stuckTimer = 0f;
+
+        Vector3 moved = transform.position - lastStuckCheckPosition;
+        moved.y = 0f;
+        lastStuckCheckPosition = transform.position;
+
+        // Even a slowed enemy should move at least this far in the check time
+        float minimumMove = Mathf.Max(0.1f, agent.speed * stuckCheckTime * 0.25f);
+
+        if (moved.magnitude >= minimumMove)
+        {
+            stuckStrikes = 0;
+            return;
+        }
+
+        stuckStrikes++;
+
+        if (stuckStrikes == 1)
+        {
+            // First try: work out the route again
+            ResumePath();
+        }
+        else if (currentWaypointIndex < waypoints.Count - 1)
+        {
+            // Still stuck: give up on this waypoint and head for the next one
+            currentWaypointIndex++;
+            ResumePath();
+        }
+        else
+        {
+            // Stuck on the last stretch: shuffle a bit closer to the tower
+            Tower tower = GetTower();
+            if (tower != null)
+            {
+                Vector3 nudged = Vector3.MoveTowards(transform.position, tower.transform.position, 2f);
+                if (NavMesh.SamplePosition(nudged, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+                {
+                    agent.Warp(hit.position);
+                }
+            }
+
+            ResumePath();
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Tower
+    // ---------------------------------------------------------------------
 
     private Tower GetTower()
     {
@@ -221,30 +558,9 @@ public class Enemy : MonoBehaviour, IDamageable
         agent.isStopped = true;
     }
 
-    private bool HasArrivedAtDestination()
-    {
-        return !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance;
-    }
-
-    // Checks a small radius around the enemy for the Defender
-    protected virtual IDamageable FindNearbyDefender()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, defenderDetectRange);
-
-        foreach (Collider hit in hits)
-        {
-            if (hit.CompareTag(defenderTag))
-            {
-                IDamageable damageable = hit.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    return damageable;
-                }
-            }
-        }
-
-        return null;
-    }
+    // ---------------------------------------------------------------------
+    // Attacking and taking damage
+    // ---------------------------------------------------------------------
 
     protected virtual void Attack()
     {
@@ -264,7 +580,12 @@ public class Enemy : MonoBehaviour, IDamageable
     // Anything that damages the enemy calls this
     public void TakeDamage(int amount)
     {
+        if (isDead) return;
+
         currentHealth -= amount;
+
+        // Being hit makes the enemy look for a defender to hit back at
+        hitAggroTimer = retaliateDuration;
 
         if (currentHealth <= 0)
         {
@@ -306,7 +627,7 @@ public class Enemy : MonoBehaviour, IDamageable
             ResourceManager.Instance.Add(resourceReward);
         }
         
-        WaveManager.NotifyEnemyKilled();
+        WaveManager.NotifyEnemyKilled(isBoss);
         Destroy(gameObject);
     }
 }

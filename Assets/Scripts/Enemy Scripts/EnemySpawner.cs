@@ -19,6 +19,18 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Optional: manually drag EnemyPath objects here. Leave empty to automatically use every EnemyPath found in the scene at runtime (used once real procedural paths exist).")]
     public List<EnemyPath> paths = new List<EnemyPath>();
 
+    [Header("Off Screen Spawning")]
+    [Tooltip("Enemies only spawn where the player's camera can't see them")]
+    public bool spawnOffScreen = true;
+
+    [Tooltip("How far outside the screen a spawn point must be. 0.1 = 10% of the screen size")]
+    public float offScreenMargin = 0.1f;
+
+    [Tooltip("Reject a spawn point if its walking route to the start of the path is more than this many times longer than a straight line")]
+    public float maxDetourFactor = 1.6f;
+
+    private Camera mainCamera;
+
     private List<EnemyPath> activePaths = new List<EnemyPath>();
     private bool pathsCollected = false;
     private Bounds terrainBounds;
@@ -173,6 +185,12 @@ public class EnemySpawner : MonoBehaviour
         {
             enemy.SetPath(chosenPath);
 
+            // Later waves are harder
+            if (WaveManager.Instance != null)
+            {
+                WaveManager.Instance.ScaleEnemy(enemy);
+            }
+
             if (asBoss)
             {
                 enemy.isBoss = true;
@@ -198,6 +216,12 @@ public class EnemySpawner : MonoBehaviour
                 continue;
             }
 
+            // Never spawn anywhere the player can see
+            if (spawnOffScreen && IsOnScreen(edgeHit.position))
+            {
+                continue;
+            }
+
             EnemyPath nearestPath = GetNearestPath(edgeHit.position);
             if (nearestPath == null)
             {
@@ -211,7 +235,8 @@ public class EnemySpawner : MonoBehaviour
 
             // Only spawn where the enemy can really walk to the start of its path
             if (NavMesh.CalculatePath(edgeHit.position, startHit.position, NavMesh.AllAreas, navPath)
-                && navPath.status == NavMeshPathStatus.PathComplete)
+                && navPath.status == NavMeshPathStatus.PathComplete
+                && IsDirectEnough(navPath, edgeHit.position, startHit.position))
             {
                 spawnPosition = edgeHit.position;
                 chosenPath = nearestPath;
@@ -255,6 +280,37 @@ public class EnemySpawner : MonoBehaviour
             case 2:  return new Vector3(minX, y, Random.Range(minZ, maxZ));
             default: return new Vector3(maxX, y, Random.Range(minZ, maxZ));
         }
+    }
+
+    // True if this world position is currently on (or very close to) the player's screen
+    private bool IsOnScreen(Vector3 worldPosition)
+    {
+        if (mainCamera == null) mainCamera = Camera.main;
+        if (mainCamera == null) return false;
+
+        Vector3 view = mainCamera.WorldToViewportPoint(worldPosition);
+
+        // z below 0 means the point is behind the camera
+        if (view.z < 0f) return false;
+
+        return view.x > -offScreenMargin && view.x < 1f + offScreenMargin &&
+            view.y > -offScreenMargin && view.y < 1f + offScreenMargin;
+    }
+
+    private bool IsDirectEnough(NavMeshPath path, Vector3 from, Vector3 to)
+    {
+        float routeLength = 0f;
+        Vector3[] corners = path.corners;
+
+        for (int i = 1; i < corners.Length; i++)
+        {
+            routeLength += Vector3.Distance(corners[i - 1], corners[i]);
+        }
+
+        float straightLine = Vector3.Distance(from, to);
+
+        // +5 so very short trips are never rejected over a tiny detour
+        return routeLength <= straightLine * maxDetourFactor + 5f;
     }
 
     // The path whose first waypoint is closest to this point

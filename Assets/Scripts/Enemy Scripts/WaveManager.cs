@@ -26,6 +26,22 @@ public class WaveManager : MonoBehaviour
     [Tooltip("Regular enemies that spawn alongside the boss")]
     public int bossEscortCount = 4;
 
+    [Header("Wave Scaling (every wave is tougher than the last)")]
+    [Tooltip("Extra health per wave. 0.15 means +15% of base health for every wave after wave 1")]
+    public float healthGrowthPerWave = 0.15f;
+
+    [Tooltip("Extra damage per wave. 0.08 means +8% of base damage for every wave after wave 1")]
+    public float damageGrowthPerWave = 0.08f;
+
+    [Tooltip("Extra walking speed per wave")]
+    public float speedGrowthPerWave = 0.02f;
+
+    [Tooltip("Enemies never get faster than this multiplier, so late waves can't become unfair")]
+    public float maxSpeedMultiplier = 1.25f;
+
+    [Tooltip("Extra resources per kill per wave, so the player's income keeps up with the tougher enemies")]
+    public float rewardGrowthPerWave = 0.05f;
+
     [Header("References")]
     public EnemySpawner enemySpawner; // Enemy spawning script
 
@@ -61,6 +77,20 @@ public class WaveManager : MonoBehaviour
 
         if (!IsSpawning && !waitingForNextWave)
             StartWave();
+    }
+
+    // The EnemySpawner calls this on every enemy right after it is created
+    public void ScaleEnemy(Enemy enemy)
+    {
+        // Wave 1 uses the normal prefab stats. The boss round uses the last wave's numbers
+        int wavesPassed = Mathf.Min(WaveNumber, totalWaves) - 1;
+
+        float healthMultiplier = 1f + healthGrowthPerWave * wavesPassed;
+        float damageMultiplier = 1f + damageGrowthPerWave * wavesPassed;
+        float speedMultiplier = Mathf.Min(1f + speedGrowthPerWave * wavesPassed, maxSpeedMultiplier);
+        float rewardMultiplier = 1f + rewardGrowthPerWave * wavesPassed;
+
+        enemy.ApplyWaveScaling(healthMultiplier, damageMultiplier, speedMultiplier, rewardMultiplier);
     }
 
     // Enemy.cs calls this when an enemy dies

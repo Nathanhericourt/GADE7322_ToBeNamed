@@ -8,6 +8,7 @@ public class PlacementSpot : MonoBehaviour
 {
     public bool IsOccupied { get; private set; }
     public GameObject CurrentTower { get; private set; }
+    public static readonly System.Collections.Generic.List<PlacementSpot> All = new System.Collections.Generic.List<PlacementSpot>();
 
     [Header("Visuals (optional)")]
     [SerializeField] private Renderer indicatorRenderer; // e.g. a flat disc/decal mesh
@@ -18,6 +19,16 @@ public class PlacementSpot : MonoBehaviour
     private MaterialPropertyBlock propBlock;
     private static readonly int ColorId = Shader.PropertyToID("_Color");
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
+    private void OnEnable()
+    {
+        All.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        All.Remove(this);
+    }
 
     private void Awake()
     {

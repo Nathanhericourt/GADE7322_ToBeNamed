@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// Attach to a defender tower prefab. Automatically finds enemies within
@@ -8,6 +9,8 @@ using UnityEngine;
 /// </summary>
 public class Defender : MonoBehaviour, IDamageable
 {
+    public static readonly List<Defender> All = new List<Defender>();
+    public Collider BodyCollider { get; private set; }
     public virtual string DisplayName => "Defender";
 
     [Header("Health")]
@@ -59,10 +62,23 @@ public class Defender : MonoBehaviour, IDamageable
     {
     }
 
+    private void OnEnable()
+    {
+        All.Add(this);
+        BodyCollider = GetComponentInChildren<Collider>();
+    }
+
+    private void OnDisable()
+    {
+        All.Remove(this);
+    }
+
     protected virtual void Start()
     {
         currentHealth = maxHealth;
         CreateHealthBar();
+
+        BodyCollider = GetComponent<Collider>();
     }
 
     private void CreateHealthBar()

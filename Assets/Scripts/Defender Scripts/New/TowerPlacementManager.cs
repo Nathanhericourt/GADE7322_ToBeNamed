@@ -10,7 +10,10 @@ public class TowerPlacementManager : MonoBehaviour
 {
     [SerializeField] private LayerMask placementSpotLayer;
     [SerializeField] private Camera mainCamera;
-    [SerializeField] private float maxRaycastDistance = 500f;
+
+    [Header("Click Help")]
+    [Tooltip("How close (in pixels at 1080p) the cursor needs to be to a green cube to pick it. Bigger = easier to click")]
+    [SerializeField] private float snapRadiusPixels = 35f;
 
     private GameObject selectedTowerPrefab;
     private PlacementSpot currentHoverSpot;
@@ -72,19 +75,58 @@ public class TowerPlacementManager : MonoBehaviour
         if (Mouse.current == null || mainCamera == null)
             return null;
 
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        RaycastHit[] hits = Physics.RaycastAll(ray, maxRaycastDistance);
+        Vector2 mouse = Mouse.current.position.ReadValue();
 
+        // Scale the pick distance with the screen height so it feels the same at any resolution
+        float bestDistance = snapRadiusPixels * (Screen.height / 1080f);
+        PlacementSpot best = null;
+
+        foreach (PlacementSpot spot in PlacementSpot.All)
+        {
+            if (spot == null) continue;
+
+            Vector3 screenPoint = mainCamera.WorldToScreenPoint(spot.transform.position);
+
+            // Behind the camera
+            if (screenPoint.z <= 0f) continue;
+
+            float distance = Vector2.Distance(mouse, new Vector2(screenPoint.x, screenPoint.y));
+            if (distance >= bestDistance) continue;
+
+            // Skip spots hidden behind a hill
+            if (!IsVisible(spot)) continue;
+
+            bestDistance = distance;
+            best = spot;
+        }
+
+        return best;
+    }
+
+    // True if no terrain is between the camera and the spot
+    private bool IsVisible(PlacementSpot spot)
+    {
+        Vector3 origin = mainCamera.transform.position;
+        Vector3 direction = spot.transform.position - origin;
+        float distance = direction.magnitude;
+
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction / distance, distance + 0.5f, ~0, QueryTriggerInteraction.Ignore);
         System.Array.Sort(hits, (first, second) => first.distance.CompareTo(second.distance));
 
         foreach (RaycastHit hit in hits)
         {
-            PlacementSpot spot = hit.collider.GetComponentInParent<PlacementSpot>();
-            if (spot != null)
-                return spot;
+            // Walking enemies don't hide a spot
+            if (hit.collider.GetComponentInParent<Enemy>() != null) continue;
+
+            PlacementSpot hitSpot = hit.collider.GetComponentInParent<PlacementSpot>();
+
+            if (hitSpot == spot) return true;   // reached the spot itself
+            if (hitSpot != null) continue;      // another spot or defender in front, ignore it
+
+            return false;                       // terrain is in the way
         }
 
-        return null;
+        return true;
     }
 
     private void TryBuildOn(PlacementSpot spot)

@@ -25,6 +25,11 @@ public class Tower : MonoBehaviour, IDamageable
     [Tooltip("Enemies must use this tag so the tower can find them (create this Tag in Unity's Tag Manager if it doesn't already exist)")]
     public string enemyTag = "Enemy";
 
+    [Header("Health Bar")]
+    [SerializeField] private GameObject healthBarPrefab;
+    [Tooltip("How high above the tower's centre the bar floats. Raise it if the bar is hidden inside the tower")]
+    [SerializeField] private float healthBarHeight = 4f;
+
     private bool isDestroyed = false;
     private float attackTimer = 0f;
 
@@ -37,6 +42,22 @@ public class Tower : MonoBehaviour, IDamageable
     private void Start()
     {
         currentHealth = maxHealth;
+        CreateHealthBar();
+    }
+
+    private void CreateHealthBar()
+    {
+        if (healthBarPrefab == null)
+            return;
+
+        GameObject bar = Instantiate(healthBarPrefab);
+
+        WorldHealthBar healthBar = bar.GetComponent<WorldHealthBar>();
+
+        if (healthBar != null)
+        {
+            healthBar.SetTarget(transform, healthBarHeight);
+        }
     }
 
     private void Update()

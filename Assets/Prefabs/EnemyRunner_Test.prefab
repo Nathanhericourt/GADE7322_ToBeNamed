@@ -127,15 +127,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8099915bfb21b4f4597cfc961bbc0cdb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunnerEnemy
-  maxHealth: 10
-  moveSpeed: 5
+  maxHealth: 15
+  moveSpeed: 5.5
   attackDamage: 4
   attackInterval: 0.75
   resourceReward: 5
   defenderDetectRange: 3
+  retaliateRange: 12
+  retaliateDuration: 4
+  attackReach: 1.2
+  chaseGiveUpRange: 14
+  maxChaseTime: 12
   defenderTag: Defender
+  waypointReachDistance: 1.5
+  stuckCheckTime: 1.5
   healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
   healthBarHeight: 1.2
+  towerReach: 2
+  isBoss: 0
 --- !u!135 &7474461891306404507
 SphereCollider:
   m_ObjectHideFlags: 0

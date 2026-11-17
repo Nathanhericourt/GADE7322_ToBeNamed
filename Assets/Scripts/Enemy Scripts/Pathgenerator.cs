@@ -22,6 +22,9 @@ public class Pathgenerator : MonoBehaviour
     [Tooltip("How many waypoints make up each path")]
     public int waypointsPerPath = 5;
 
+    [Tooltip("Longer paths get extra waypoints so no gap is left between the no-build zones. 10 works with the default zone radius of 2.5")]
+    public float maxWaypointSpacing = 10f;
+
     [Header("Path Protection")]
     [Tooltip("NoBuildZone radius around each waypoint - must cover the path width")]
     public float pathZoneRadius = 2.5f;
@@ -103,12 +106,16 @@ public class Pathgenerator : MonoBehaviour
 
         EnemyPath pathScript = pathObject.AddComponent<EnemyPath>();
 
+        // Longer paths get more waypoints, so the no-build zones always cover the whole path
+        float pathLength = new Vector2(startXZ.x - endPosition.x, startXZ.z - endPosition.z).magnitude;
+        int waypointCount = Mathf.Max(waypointsPerPath, Mathf.CeilToInt(pathLength / maxWaypointSpacing));
+
         Vector3 previous = SnapToTerrain(startXZ, endPosition);
         AddWaypoint(pathObject.transform, pathScript, previous, 0);
 
-        for (int w = 1; w <= waypointsPerPath; w++)
+        for (int w = 1; w <= waypointCount; w++)
         {
-            float t = (float)w / waypointsPerPath;
+            float t = (float)w / waypointCount;
             Vector3 flatPoint = Vector3.Lerp(startXZ, endPosition, t);
             Vector3 snapped = SnapToTerrain(flatPoint, endPosition);
 

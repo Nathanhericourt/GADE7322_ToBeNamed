@@ -132,6 +132,8 @@ MonoBehaviour:
   attackDamage: 5
   attackInterval: 1
   enemyTag: Enemy
+  healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
+  healthBarHeight: 4
 --- !u!114 &-1400004007824086607
 MonoBehaviour:
   m_ObjectHideFlags: 0

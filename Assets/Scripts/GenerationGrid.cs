@@ -26,8 +26,16 @@ public class GenerationGrid : MonoBehaviour
     [SerializeField] private int worldSizeX = 40;
     [SerializeField] private int worldSizeZ = 40;
     
+    [Tooltip("How many objects are scattered over the map. Raise this when the map gets bigger")]
+    [SerializeField] private int objectCount = 300;
+    
+    [Header("Terrain Shape")]
+    [Tooltip("How tall the hills can get, in blocks")]
+    [SerializeField] private int noiseHeight = 8;
 
-    private int noiseHeight = 8;
+    [Tooltip("Bigger = wide, gentle hills. Smaller = busy, bumpy terrain")]
+    [SerializeField] private float detailScale = 14f;
+
     private float gridOffset = 1f;
 
     // FIX 3 (new): random per-game offset for the noise
@@ -44,25 +52,81 @@ public class GenerationGrid : MonoBehaviour
 
     void Start()
     {
-        // FIX 3: randomize so the terrain is different every new game
+        // randomize so the terrain is different every new game
         noiseOffsetX = Random.Range(0f, 10000f);
         noiseOffsetZ = Random.Range(0f, 10000f);
 
-        for(int x = 0; x < worldSizeX; x++)
+        // 1. Work out how tall every column is (always at least 1 block)
+        int[,] heights = new int[worldSizeX, worldSizeZ];
+
+        for (int x = 0; x < worldSizeX; x++)
         {
-            for(int z = 0; z < worldSizeZ; z++)
+            for (int z = 0; z < worldSizeZ; z++)
             {
-                Vector3 pos = new Vector3(x * gridOffset, generateNoise(x,z,8f) * noiseHeight, z * gridOffset);
+                heights[x, z] = Mathf.RoundToInt(generateNoise(x, z, detailScale) * noiseHeight) + 1;
+            }
+        }
+
+        // 2. Remove cliffs so every part of the map can be walked to
+        SmoothHeights(heights);
+
+        // 3. Build solid columns that reach all the way down to the ground
+        for (int x = 0; x < worldSizeX; x++)
+        {
+            for (int z = 0; z < worldSizeZ; z++)
+            {
+                int height = heights[x, z];
+
+                Vector3 pos = new Vector3(x * gridOffset, height / 2f, z * gridOffset);
                 GameObject block = Instantiate(blockGameObject, pos, Quaternion.identity) as GameObject;
 
-                blockPositions.Add(block.transform.position);
+                // Stretch the cube so its bottom is at ground level and its top is at 'height'
+                Vector3 size = blockGameObject.transform.localScale;
+                block.transform.localScale = new Vector3(size.x, height, size.z);
+
+                // Remember the TOP of the column (used for placing objects)
+                blockPositions.Add(new Vector3(pos.x, height, pos.z));
 
                 block.transform.SetParent(this.transform);
             }
         }
+
         SpawnObject();
 
         StartCoroutine(BakeNavMeshWhenReady());
+    }
+
+    // Makes sure no column is more than 1 block higher than the columns next to it.
+    // No cliffs means every part of the map can be walked to, and enemies take direct routes
+    private void SmoothHeights(int[,] heights)
+    {
+        bool changed = true;
+        int safety = 0;
+
+        while (changed && safety < 100)
+        {
+            changed = false;
+            safety++;
+
+            for (int x = 0; x < worldSizeX; x++)
+            {
+                for (int z = 0; z < worldSizeZ; z++)
+                {
+                    int allowed = heights[x, z];
+
+                    if (x > 0) allowed = Mathf.Min(allowed, heights[x - 1, z] + 1);
+                    if (x < worldSizeX - 1) allowed = Mathf.Min(allowed, heights[x + 1, z] + 1);
+                    if (z > 0) allowed = Mathf.Min(allowed, heights[x, z - 1] + 1);
+                    if (z < worldSizeZ - 1) allowed = Mathf.Min(allowed, heights[x, z + 1] + 1);
+
+                    if (allowed < heights[x, z])
+                    {
+                        heights[x, z] = allowed;
+                        changed = true;
+                    }
+                }
+            }
+        }
     }
 
     // NavMesh
@@ -95,7 +159,7 @@ public class GenerationGrid : MonoBehaviour
 
     private void SpawnObject()
     {
-        for(int c = 0; c <50; c++)
+        for(int c = 0; c < objectCount; c++)
         {
             GameObject toPlaceObject = Instantiate(objectToSpawn, ObjectSpawnLocation(), Quaternion.identity);
 
@@ -106,7 +170,7 @@ public class GenerationGrid : MonoBehaviour
     {
         int rndIndex = Random.Range(0, blockPositions.Count);
 
-        Vector3 newPos = new Vector3(blockPositions[rndIndex].x, blockPositions[rndIndex].y + 0.5f, blockPositions[rndIndex].z);
+        Vector3 newPos = blockPositions[rndIndex];
         blockPositions.RemoveAt(rndIndex);
         return newPos;
     }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 // Slow, tanky enemy
 public class BruteEnemy : Enemy
@@ -22,16 +23,22 @@ public class BruteEnemy : Enemy
             return;
         }
 
-        // Fighting defenders: slam everything in the radius
-        Collider[] hits = Physics.OverlapSphere(transform.position, slamRadius);
-        foreach (Collider hit in hits)
-        {
-            if (!hit.CompareTag(defenderTag)) continue;
+        // The defender this Brute is fighting always gets hit
+        Defender mainTarget = currentTarget as Defender;
 
-            IDamageable damageable = hit.GetComponent<IDamageable>();
-            if (damageable != null)
+        // Loop over a copy of the list, because a defender dying can remove itself from the real list mid-loop
+        List<Defender> targets = new List<Defender>(Defender.All);
+
+        foreach (Defender defender in targets)
+        {
+            if (defender == null) continue;
+
+            Vector3 flat = defender.transform.position - transform.position;
+            flat.y = 0f;
+
+            if (defender == mainTarget || flat.magnitude <= slamRadius)
             {
-                damageable.TakeDamage(attackDamage);
+                defender.TakeDamage(attackDamage);
             }
         }
     }

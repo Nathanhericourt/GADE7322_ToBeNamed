@@ -128,15 +128,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe9127bf3c791494b951579583007e84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  maxHealth: 20
-  moveSpeed: 2
+  maxHealth: 35
+  moveSpeed: 2.8
   attackDamage: 5
   attackInterval: 1
   resourceReward: 10
   defenderDetectRange: 1.5
+  retaliateRange: 12
+  retaliateDuration: 4
+  attackReach: 1.2
+  chaseGiveUpRange: 14
+  maxChaseTime: 12
   defenderTag: Defender
+  waypointReachDistance: 1.5
+  stuckCheckTime: 1.5
   healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
   healthBarHeight: 2
+  towerReach: 2
+  isBoss: 0
 --- !u!195 &3770184837243487852
 NavMeshAgent:
   m_ObjectHideFlags: 0
