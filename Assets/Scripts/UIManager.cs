@@ -19,6 +19,9 @@ public class UIManager : MonoBehaviour
     [Tooltip("The Game Over UI panel")]
     public GameObject gameOverPanel;
 
+    [Tooltip("Shown when the boss is defeated (duplicate the Game Over panel and change its text to something like YOU WIN)")]
+    public GameObject victoryPanel;
+
     [Header("Pause")]
     [Tooltip("Panel shown while the game is paused")]
     public GameObject pausePanel;
@@ -52,6 +55,7 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (victoryPanel != null) victoryPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
     }
 
@@ -69,9 +73,17 @@ public class UIManager : MonoBehaviour
 
         if (waveText != null && WaveManager.Instance != null)
         {
-            waveText.text = "Wave " + WaveManager.Instance.WaveNumber
-                + "  " + WaveManager.Instance.EnemiesKilled
-                + "/" + WaveManager.Instance.EnemiesThisWave;
+            if (WaveManager.Instance.IsBossRound)
+            {
+                waveText.text = "BOSS ROUND";
+            }
+            else
+            {
+                waveText.text = "Wave " + WaveManager.Instance.WaveNumber
+                    + "/" + WaveManager.Instance.totalWaves
+                    + "  " + WaveManager.Instance.EnemiesKilled
+                    + "/" + WaveManager.Instance.EnemiesThisWave;
+            }
         }
 
     }
@@ -82,6 +94,17 @@ public class UIManager : MonoBehaviour
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
+        }
+
+        Time.timeScale = 0f; // Pause the game
+    }
+
+    // Called by WaveManager when the boss is defeated
+    public void ShowVictory()
+    {
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
         }
 
         Time.timeScale = 0f; // Pause the game

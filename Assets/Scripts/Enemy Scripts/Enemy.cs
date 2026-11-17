@@ -33,6 +33,14 @@ public class Enemy : MonoBehaviour, IDamageable
     [SerializeField] private GameObject healthBarPrefab;
     [SerializeField] private float healthBarHeight = 2f;
 
+    [Header("Tower Detection")]
+    [Tooltip("How close (to the tower's edge) this enemy must get before it stops and attacks the tower. Stops crowds of enemies getting stuck short of the tower centre.")]
+    public float towerReach = 2f;
+
+    [Header("Boss")]
+    [Tooltip("Tick this on the boss prefab. Killing the boss ends the boss round and wins the game.")]
+    public bool isBoss = false;
+
     private int currentHealth;
 
     public int CurrentHealth => currentHealth;
@@ -46,6 +54,10 @@ public class Enemy : MonoBehaviour, IDamageable
     protected bool reachedTower = false;
     protected float attackTimer = 0f;
 
+    private bool isDead = false;
+    private Tower cachedTower;
+    private Collider cachedTowerCollider;
+
     // Slow effect
     private float slowTimer = 0f;
     private float currentSlowMultiplier = 1f;
@@ -57,6 +69,9 @@ public class Enemy : MonoBehaviour, IDamageable
 
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
+
+        // Enemies walk through each other, so a slow Brute can never block a fast Runner
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
         // If agent doesnt land on the NavMesh
         if (!agent.isOnNavMesh)
@@ -126,7 +141,7 @@ public class Enemy : MonoBehaviour, IDamageable
         }
 
         // No defender nearby
-        if (agent.isStopped)
+        if (agent.isStopped && !reachedTower)
         {
             agent.isStopped = false;
         }
@@ -137,12 +152,20 @@ public class Enemy : MonoBehaviour, IDamageable
         }
         else
         {
+            currentTarget = GetTower();
             Attack();
         }
     }
 
     protected void FollowPath()
     {
+        // Close enough to the tower to attack it - enemies don't need to reach the exact centre
+        if (IsNearTower())
+        {
+            ArriveAtTower();
+            return;
+        }
+
         if (agent.pathPending) return;
 
         // Reached the current waypoint
@@ -157,11 +180,45 @@ public class Enemy : MonoBehaviour, IDamageable
             else
             {
                 // Path is finished
-                reachedTower = true;
-                currentTarget = FindAnyObjectByType<Tower>();
-                agent.isStopped = true;
+                ArriveAtTower();
             }
         }
+    }
+
+    private Tower GetTower()
+    {
+        if (cachedTower == null)
+        {
+            cachedTower = FindAnyObjectByType<Tower>();
+
+            if (cachedTower != null)
+            {
+                cachedTowerCollider = cachedTower.GetComponent<Collider>();
+            }
+        }
+
+        return cachedTower;
+    }
+
+    // True once this enemy is within towerReach of the tower's edge
+    private bool IsNearTower()
+    {
+        Tower tower = GetTower();
+        if (tower == null) return false;
+
+        Vector3 closestPoint = cachedTowerCollider != null
+            ? cachedTowerCollider.ClosestPoint(transform.position)
+            : tower.transform.position;
+
+        return Vector3.Distance(transform.position, closestPoint) <= towerReach;
+    }
+
+    // Stop walking and start attacking the tower
+    private void ArriveAtTower()
+    {
+        reachedTower = true;
+        currentTarget = GetTower();
+        agent.isStopped = true;
     }
 
     private bool HasArrivedAtDestination()
@@ -240,6 +297,10 @@ public class Enemy : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        // Two hits landing in the same frame must only count as one kill
+        if (isDead) return;
+        isDead = true;
+
         if(ResourceManager.Instance != null)
         {
             ResourceManager.Instance.Add(resourceReward);
