@@ -64,6 +64,9 @@ public class RTSCamera : MonoBehaviour
 
         if (Keyboard.current == null || Mouse.current == null) return;
 
+        //Camera controls are locked while the game is paused (or over)
+        if (Time.timeScale == 0f) return;
+
         //So the camera still works if you pause the game later
         float dt = Time.unscaledDeltaTime;
 

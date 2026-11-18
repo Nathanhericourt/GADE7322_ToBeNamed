@@ -144,6 +144,17 @@ MonoBehaviour:
   firePoint: {fileID: 8472090999748435002}
   projectilePrefab: {fileID: 1000000000000001, guid: 82f48f3bedd23034c970342faca57d28, type: 3}
   damage: 10
+  maxLevel: 3
+  upgradeCosts: 3c00000078000000
+  healthBonusPerLevel: 0.5
+  damageBonusPerLevel: 0.3
+  fireRateBonusPerLevel: 0.15
+  rangeBonusPerLevel: 0.75
+  levelColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.5, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 0.85, b: 0.3, a: 1}
+  scaleGrowthPerLevel: 0.15
 --- !u!1 &8472090999748435001
 GameObject:
   m_ObjectHideFlags: 0

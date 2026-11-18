@@ -68,7 +68,7 @@ public class UIManager : MonoBehaviour
 
         if (towerHealthText != null && tower != null)
         {
-            towerHealthText.text = "Tower Health: " + tower.CurrentHealth + " / " + tower.MaxHealth;
+            towerHealthText.text = "TOWER HEALTH: " + tower.CurrentHealth + "/" + tower.MaxHealth;
         }
 
         if (waveText != null && WaveManager.Instance != null)
@@ -126,5 +126,11 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+        public void LoadMainMenu(string mainMenuSceneName)
+    {
+        Time.timeScale = 1f; // Always reset time scale before leaving!
+        UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
     }
 }

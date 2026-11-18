@@ -94,7 +94,13 @@ public class Pathgenerator : MonoBehaviour
         }
 
         if (PlacedTower == null)
+        {
             Debug.LogError("[PathGenerator] No Tower prefab assigned and no Tower found in the scene.");
+            return;
+        }
+
+        // The tower's pivot is in its middle, so lift it until its bottom sits on the ground
+        UpgradeVisuals.SitOnGround(PlacedTower.transform, towerPos.y);
         
     }
 

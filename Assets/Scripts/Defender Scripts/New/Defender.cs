@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// Assumes enemies have a component implementing IDamageable (see below),
 /// and are on the layer set in enemyLayer / tagged "Enemy".
 /// </summary>
-public class Defender : MonoBehaviour, IDamageable
+public class Defender : MonoBehaviour, IDamageable, IUpgradable
 {
     public static readonly List<Defender> All = new List<Defender>();
     public Collider BodyCollider { get; private set; }
@@ -49,6 +49,34 @@ public class Defender : MonoBehaviour, IDamageable
     [SerializeField] protected GameObject projectilePrefab;
     [SerializeField] protected float damage = 10f;
 
+    [Header("Upgrades")]
+    [Tooltip("Total levels. 3 = the starting level plus 2 upgrades")]
+    [SerializeField] private int maxLevel = 3;
+    [Tooltip("Price of upgrade to level 2, then to level 3, and so on")]
+    [SerializeField] private int[] upgradeCosts = { 60, 120 };
+    [Tooltip("Each upgrade adds this fraction of the BASE value. 0.5 = +50% health per upgrade")]
+    [SerializeField] private float healthBonusPerLevel = 0.5f;
+    [SerializeField] private float damageBonusPerLevel = 0.3f;
+    [SerializeField] private float fireRateBonusPerLevel = 0.15f;
+    [Tooltip("Extra range (in units) added per upgrade")]
+    [SerializeField] private float rangeBonusPerLevel = 0.75f;
+    [Header("Upgrade Visuals")]
+    [Tooltip("Colour tint for level 1, 2, 3... White = no change")]
+    [SerializeField] private Color[] levelColors = { Color.white, new Color(0.5f, 0.8f, 1f), new Color(1f, 0.85f, 0.3f) };
+    [Tooltip("Defender grows by this fraction per upgrade. 0.15 = 15% bigger each level")]
+    [SerializeField] private float scaleGrowthPerLevel = 0.15f;
+
+    private int level = 1;
+    private UpgradeVisuals visuals;
+    private int baseMaxHealth;
+    private float baseDamage;
+    private float baseFireRate;
+    private float baseRange;
+
+    public int Level => level;
+    public int MaxLevel => maxLevel;
+    public bool IsMaxLevel => level >= maxLevel;
+
     protected Transform currentTarget;
     private float fireCooldown;
     private float targetScanCooldown;
@@ -60,6 +88,16 @@ public class Defender : MonoBehaviour, IDamageable
 
     protected virtual void ApplyTypeDefaults()
     {
+    }
+
+    private void Awake()
+    {
+        // Remember the starting stats so every upgrade is worked out from the base values
+        baseMaxHealth = maxHealth;
+        baseDamage = damage;
+        baseFireRate = fireRate;
+        baseRange = range;
+        visuals = new UpgradeVisuals(transform);
     }
 
     private void OnEnable()
@@ -222,6 +260,90 @@ public class Defender : MonoBehaviour, IDamageable
 
         if (proj != null)
             proj.Launch(currentTarget, damage);
+    }
+
+    // ---------------- Upgrades ----------------
+
+    public int NextUpgradeCost
+    {
+        get
+        {
+            if (IsMaxLevel || upgradeCosts == null || upgradeCosts.Length == 0)
+                return 0;
+
+            // level 1 -> index 0, level 2 -> index 1. Reuse the last price if the list is too short
+            int index = Mathf.Min(level - 1, upgradeCosts.Length - 1);
+            return upgradeCosts[index];
+        }
+    }
+
+    public bool TryUpgrade()
+    {
+        if (isDestroyed || IsMaxLevel)
+            return false;
+
+        if (ResourceManager.Instance == null || !ResourceManager.Instance.TrySpend(NextUpgradeCost))
+            return false;
+
+        level++;
+
+        int oldMaxHealth = maxHealth;
+        ApplyLevelStats();
+
+        // Heal by however much the max health went up
+        currentHealth += maxHealth - oldMaxHealth;
+
+        Debug.Log(DisplayName + " upgraded to level " + level);
+        return true;
+    }
+
+    private void ApplyLevelStats()
+    {
+        int steps = level - 1; // how many upgrades have been bought
+
+        maxHealth = Mathf.RoundToInt(baseMaxHealth * (1f + healthBonusPerLevel * steps));
+        damage = baseDamage * (1f + damageBonusPerLevel * steps);
+        fireRate = baseFireRate * (1f + fireRateBonusPerLevel * steps);
+        range = baseRange + rangeBonusPerLevel * steps;
+
+        Color tint = Color.white;
+        if (levelColors != null && levelColors.Length > 0)
+            tint = levelColors[Mathf.Min(steps, levelColors.Length - 1)];
+
+        visuals.Apply(tint, 1f + scaleGrowthPerLevel * steps);
+    }
+
+    public string GetUpgradeSummary()
+    {
+        if (IsMaxLevel)
+        {
+            // Nothing left to buy, so just show the current stats
+            return "Health " + maxHealth + "\n"
+                 + "Damage " + damage.ToString("0.#") + "\n"
+                 + "Fire rate " + fireRate.ToString("0.0") + "\n"
+                 + "Range " + range.ToString("0.#");
+        }
+
+        int steps = level; // the steps the NEXT level would have
+
+        int nextHealth = Mathf.RoundToInt(baseMaxHealth * (1f + healthBonusPerLevel * steps));
+        float nextDamage = baseDamage * (1f + damageBonusPerLevel * steps);
+        float nextFireRate = baseFireRate * (1f + fireRateBonusPerLevel * steps);
+        float nextRange = baseRange + rangeBonusPerLevel * steps;
+
+        return "Health " + maxHealth + " > " + nextHealth + "\n"
+             + "Damage " + damage.ToString("0.#") + " > " + nextDamage.ToString("0.#") + "\n"
+             + "Fire rate " + fireRate.ToString("0.0") + " > " + nextFireRate.ToString("0.0") + "\n"
+             + "Range " + range.ToString("0.#") + " > " + nextRange.ToString("0.#");
+    }
+
+    // Right-click the component header in the Inspector while playing to test an upgrade for free
+    [ContextMenu("Test Upgrade (free)")]
+    private void TestUpgrade()
+    {
+        if (IsMaxLevel) return;
+        ResourceManager.Instance?.Add(NextUpgradeCost);
+        TryUpgrade();
     }
 
     private void OnDrawGizmosSelected()

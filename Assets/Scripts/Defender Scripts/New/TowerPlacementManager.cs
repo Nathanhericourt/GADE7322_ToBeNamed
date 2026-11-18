@@ -16,6 +16,12 @@ public class TowerPlacementManager : MonoBehaviour
     [SerializeField] private float snapRadiusPixels = 35f;
 
     private GameObject selectedTowerPrefab;
+
+    // True while the player has picked a defender to build and hasn't placed it yet
+    public bool IsPlacing => selectedTowerPrefab != null;
+
+    // Fired right after a defender is placed (the upgrade panel listens to this)
+    public static event System.Action<Defender> OnDefenderPlaced;
     private PlacementSpot currentHoverSpot;
 
     private void Awake()
@@ -41,8 +47,22 @@ public class TowerPlacementManager : MonoBehaviour
         }
     }
 
+    private float freeSpotTimer;
+
     private void Update()
     {
+        // No building while the game is paused
+        if (Time.timeScale == 0f)
+            return;
+
+        // Twice a second, bring back the green cube of any defender that was destroyed
+        freeSpotTimer -= Time.deltaTime;
+        if (freeSpotTimer <= 0f)
+        {
+            freeSpotTimer = 0.5f;
+            PlacementSpot.FreeSpotsWithDeadDefenders();
+        }
+
         if (selectedTowerPrefab == null)
             return;
 
@@ -83,7 +103,7 @@ public class TowerPlacementManager : MonoBehaviour
 
         foreach (PlacementSpot spot in PlacementSpot.All)
         {
-            if (spot == null) continue;
+            if (spot == null || spot.IsOccupied) continue;
 
             Vector3 screenPoint = mainCamera.WorldToScreenPoint(spot.transform.position);
 
@@ -150,6 +170,8 @@ public class TowerPlacementManager : MonoBehaviour
             selectedTowerPrefab = null;
             spot.SetHover(false);
             currentHoverSpot = null;
+
+            OnDefenderPlaced?.Invoke(tower.GetComponent<Defender>());
         }
         else
         {

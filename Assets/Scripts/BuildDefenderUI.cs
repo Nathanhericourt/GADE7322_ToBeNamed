@@ -117,6 +117,10 @@ public class BuildDefenderUI : MonoBehaviour
 
     private void Build(GameObject prefab, Defender defender)
     {
+        // Buttons do nothing while the game is paused
+        if (Time.timeScale == 0f)
+            return;
+            
         if (placementManager == null || prefab == null || defender == null)
             return;
 

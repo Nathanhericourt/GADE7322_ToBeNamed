@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 44f4abc1644ef314192ac772093f84bc, type: 2}
+  - {fileID: 2100000, guid: e7ffacb8651193345b1c52b3960cab3b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -134,6 +134,17 @@ MonoBehaviour:
   enemyTag: Enemy
   healthBarPrefab: {fileID: 5005693097510649869, guid: f50add2a25117294faa321951239de2e, type: 3}
   healthBarHeight: 4
+  maxLevel: 3
+  upgradeCosts: 64000000c8000000
+  healthBonusPerLevel: 0.6
+  damageBonusPerLevel: 0.4
+  attackSpeedBonusPerLevel: 0.15
+  rangeBonusPerLevel: 1
+  levelColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0.5, g: 0.8, b: 1, a: 1}
+  - {r: 1, g: 0.85, b: 0.3, a: 1}
+  scaleGrowthPerLevel: 0.1
 --- !u!114 &-1400004007824086607
 MonoBehaviour:
   m_ObjectHideFlags: 0
