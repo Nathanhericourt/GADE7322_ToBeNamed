@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Temp Test Script
-// Press 1 to select the Heavy defender, 2 to select the Rapid defender.
+// Press 1 to select the Heavy defender, 2 for Rapid, 3 for Freeze.
 public class TestBuildInput : MonoBehaviour
 {
     [Tooltip("The Heavy Defender prefab to select when pressing 1")]
@@ -10,6 +10,9 @@ public class TestBuildInput : MonoBehaviour
 
     [Tooltip("The Rapid Defender prefab to select when pressing 2")]
     public GameObject secondDefenderPrefab;
+
+    [Tooltip("The Freeze Defender prefab to select when pressing 3")]
+    public GameObject thirdDefenderPrefab;
 
     [Tooltip("Drag the GameObject with TowerPlacementManager on it here")]
     public TowerPlacementManager placementManager;
@@ -29,6 +32,12 @@ public class TestBuildInput : MonoBehaviour
         {
             placementManager.SelectTowerToBuild(secondDefenderPrefab);
             Debug.Log("Rapid defender selected - click a placement spot to build it.");
+        }
+
+        if (thirdDefenderPrefab != null && Keyboard.current.digit3Key.wasPressedThisFrame)
+        {
+            placementManager.SelectTowerToBuild(thirdDefenderPrefab);
+            Debug.Log("Freeze defender selected - click a placement spot to build it.");
         }
     }
 }

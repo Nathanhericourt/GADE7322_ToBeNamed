@@ -9,6 +9,9 @@ public class RunnerEnemy : Enemy
     {
         if (agent == null || !agent.isOnNavMesh) return;
 
+        if (TickFreeze())
+            return;
+
         if (!reachedTower)
         {
             // Hit and run

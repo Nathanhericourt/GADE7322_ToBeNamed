@@ -19,19 +19,30 @@ public class BuildDefenderUI : MonoBehaviour
     [SerializeField] private Button secondBuildButton;
     [SerializeField] private TMP_Text secondBuildButtonLabel;
 
+    [Header("Freeze Defender")]
+    [SerializeField] private GameObject thirdDefenderPrefab;
+    [SerializeField] private TMP_Text thirdCostText;
+    [SerializeField] private Button thirdBuildButton;
+    [SerializeField] private TMP_Text thirdBuildButtonLabel;
+
     private Defender firstDefender;
     private Defender secondDefender;
+    private Defender thirdDefender;
 
     private void Start()
     {
         firstDefender = GetDefender(defenderPrefab);
         secondDefender = GetDefender(secondDefenderPrefab);
+        thirdDefender = GetDefender(thirdDefenderPrefab);
 
         if (buildButton != null)
             buildButton.onClick.AddListener(() => Build(defenderPrefab, firstDefender));
 
         if (secondBuildButton != null)
             secondBuildButton.onClick.AddListener(() => Build(secondDefenderPrefab, secondDefender));
+
+        if (thirdBuildButton != null)
+            thirdBuildButton.onClick.AddListener(() => Build(thirdDefenderPrefab, thirdDefender));
 
         RefreshLabels();
     }
@@ -40,6 +51,7 @@ public class BuildDefenderUI : MonoBehaviour
     {
         UpdateButtonState(buildButton, firstDefender);
         UpdateButtonState(secondBuildButton, secondDefender);
+        UpdateButtonState(thirdBuildButton, thirdDefender);
         RefreshLabels();
     }
 
@@ -50,25 +62,41 @@ public class BuildDefenderUI : MonoBehaviour
 
     private void RefreshLabels()
     {
-        SetCostLabel(costText, firstDefender, secondDefender);
-        SetCostLabel(secondCostText, secondDefender, null);
+        SetCombinedCostLabel(costText, firstDefender, secondDefender, thirdDefender);
+        SetCostLabel(secondCostText, secondDefender);
+        SetCostLabel(thirdCostText, thirdDefender);
         SetButtonLabel(buildButtonLabel, firstDefender);
         SetButtonLabel(secondBuildButtonLabel, secondDefender);
+        SetButtonLabel(thirdBuildButtonLabel, thirdDefender);
     }
 
-    private static void SetCostLabel(TMP_Text label, Defender defender, Defender extraDefender)
+    private static void SetCombinedCostLabel(TMP_Text label, params Defender[] defenders)
     {
         if (label == null)
             return;
 
-        if (defender != null && extraDefender != null)
+        string text = "";
+        foreach (Defender defender in defenders)
         {
-            label.text = defender.DisplayName + ": " + defender.Cost + "  |  " + extraDefender.DisplayName + ": " + extraDefender.Cost;
-            return;
+            if (defender == null)
+                continue;
+
+            if (text.Length > 0)
+                text += "  |  ";
+
+            text += defender.DisplayName + ": " + defender.Cost;
         }
 
-        if (defender != null)
-            label.text = "Cost: " + defender.Cost;
+        if (text.Length > 0)
+            label.text = text;
+    }
+
+    private static void SetCostLabel(TMP_Text label, Defender defender)
+    {
+        if (label == null || defender == null)
+            return;
+
+        label.text = "Cost: " + defender.Cost;
     }
 
     private static void SetButtonLabel(TMP_Text label, Defender defender)

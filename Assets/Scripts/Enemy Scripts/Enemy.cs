@@ -87,6 +87,9 @@ public class Enemy : MonoBehaviour, IDamageable
     private float slowTimer = 0f;
     private float currentSlowMultiplier = 1f;
 
+    // Freeze effect
+    private float freezeTimer = 0f;
+
     // Fighting defenders
     private Defender defenderTarget;
     private bool fightingDefender = false;
@@ -192,6 +195,9 @@ public class Enemy : MonoBehaviour, IDamageable
     protected virtual void Update()
     {
         if (agent == null || !agent.isOnNavMesh) return;
+
+        if (TickFreeze())
+            return;
 
         if (hitAggroTimer > 0f)
         {
@@ -591,6 +597,58 @@ public class Enemy : MonoBehaviour, IDamageable
         {
             Die();
         }
+    }
+
+    // Stops the enemy from moving or attacking for a short time
+    public void ApplyFreeze(float duration)
+    {
+        if (isDead || duration <= 0f) return;
+
+        freezeTimer = Mathf.Max(freezeTimer, duration);
+        HoldFrozen();
+    }
+
+    // Returns true while the enemy is still frozen
+    protected bool TickFreeze()
+    {
+        if (freezeTimer <= 0f)
+            return false;
+
+        freezeTimer -= Time.deltaTime;
+        HoldFrozen();
+
+        if (freezeTimer > 0f)
+            return true;
+
+        freezeTimer = 0f;
+        EndFreeze();
+        return false;
+    }
+
+    private void HoldFrozen()
+    {
+        if (agent == null || !agent.isOnNavMesh) return;
+
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+    }
+
+    private void EndFreeze()
+    {
+        if (agent == null || !agent.isOnNavMesh) return;
+
+        if (reachedTower)
+        {
+            agent.isStopped = true;
+            return;
+        }
+
+        agent.isStopped = false;
+
+        if (fightingDefender && defenderTarget != null)
+            return;
+
+        ResumePath();
     }
 
     // Slows the enemy's movement for a short time

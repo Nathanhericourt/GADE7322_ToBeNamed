@@ -1,0 +1,10 @@
+---
+description: Never edit the NH enemies testing scene
+alwaysApply: true
+---
+
+# Do Not Edit The NH Scene
+
+Never open, modify, or save `Assets/Scenes/NH_Enemies_Testing/PartOne_Main_Scene_NH.unity`.
+
+That scene belongs to another teammate. Do all gameplay, UI, prefab, and scene wiring in other scenes such as `PartOne_Main_Scene.unity` or `PartOne_Main_Scene_PS.unity`.

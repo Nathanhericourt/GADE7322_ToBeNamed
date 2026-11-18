@@ -15,12 +15,19 @@ public class Projectile : MonoBehaviour
 
     private Transform target;
     protected float damage;
+    private float freezeDuration;
     private Vector3 lastKnownDirection = Vector3.forward;
 
     public void Launch(Transform newTarget, float damageAmount)
     {
+        Launch(newTarget, damageAmount, 0f);
+    }
+
+    public void Launch(Transform newTarget, float damageAmount, float freezeOnHitDuration)
+    {
         target = newTarget;
         damage = damageAmount;
+        freezeDuration = freezeOnHitDuration;
         Destroy(gameObject, lifeTime);
     }
 
@@ -45,9 +52,13 @@ public class Projectile : MonoBehaviour
     protected void HitTarget(Transform hitTarget)
     {
         // Swap this for your actual enemy/health interface.
-        Enemy enemy = hitTarget.GetComponent<Enemy>();
+        Enemy enemy = hitTarget.GetComponentInParent<Enemy>();
         if (enemy != null)
+        {
             enemy.TakeDamage((int)damage);
+            if (freezeDuration > 0f)
+                enemy.ApplyFreeze(freezeDuration);
+        }
 
         if (hitEffectPrefab != null)
             Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
