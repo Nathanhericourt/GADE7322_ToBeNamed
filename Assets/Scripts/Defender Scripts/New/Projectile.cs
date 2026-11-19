@@ -38,6 +38,9 @@ public class Projectile : MonoBehaviour
             Vector3 toTarget = target.position - transform.position;
             lastKnownDirection = toTarget.normalized;
 
+            // Also counts as a hit if this frame's move would carry it through the target (stops fast bullets skipping past at low FPS)
+            float stepThisFrame = speed * Time.deltaTime;
+
             if (toTarget.magnitude <= hitDistance)
             {
                 HitTarget(target);

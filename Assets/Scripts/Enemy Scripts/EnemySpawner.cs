@@ -30,6 +30,7 @@ public class EnemySpawner : MonoBehaviour
     public float maxDetourFactor = 1.6f;
 
     private Camera mainCamera;
+    private EnemyMutator mutator;
 
     private List<EnemyPath> activePaths = new List<EnemyPath>();
     private bool pathsCollected = false;
@@ -195,6 +196,19 @@ public class EnemySpawner : MonoBehaviour
             {
                 enemy.isBoss = true;
             }
+
+            // Every enemy gets its own random stats, look and (later in the game) trait
+            if (mutator == null)
+            {
+                mutator = GetComponent<EnemyMutator>();
+
+                if (mutator == null)
+                {
+                    mutator = gameObject.AddComponent<EnemyMutator>();
+                }
+            }
+
+            mutator.Mutate(enemy, asBoss);
         }
 
         return true;

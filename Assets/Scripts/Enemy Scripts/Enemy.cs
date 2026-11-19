@@ -77,6 +77,9 @@ public class Enemy : MonoBehaviour, IDamageable
     protected float attackTimer = 0f;
 
     private bool isDead = false;
+
+    // Only exists on enemies that rolled a trait (added by the EnemyMutator)
+    private EnemyMutation mutation;
     private Tower cachedTower;
     private Collider cachedTowerCollider;
 
@@ -106,6 +109,7 @@ public class Enemy : MonoBehaviour, IDamageable
     private void Start()
     {
         currentHealth = maxHealth;
+        mutation = GetComponent<EnemyMutation>();
         CreateHealthBar();
 
         agent = GetComponent<NavMeshAgent>();
@@ -123,6 +127,15 @@ public class Enemy : MonoBehaviour, IDamageable
         if (!agent.isOnNavMesh)
         {
             Debug.LogWarning("Enemy spawned off the NavMesh and will do nothing. Check the spawner's spawn position.");
+            
+            // Remove it and count it as gone, so the wave can still finish (the boss is left alone so it can't give a free win)
+            if (!isBoss)
+            {
+                isDead = true;
+                WaveManager.NotifyEnemyKilled(false);
+                Destroy(gameObject);
+            }
+
             enabled = false;
             return;
         }
@@ -588,6 +601,12 @@ public class Enemy : MonoBehaviour, IDamageable
     {
         if (isDead) return;
 
+        // A trait (armour, shield) can reduce the hit before it lands
+        if (mutation != null)
+        {
+            amount = mutation.ModifyIncomingDamage(amount);
+        }
+
         currentHealth -= amount;
 
         // Being hit makes the enemy look for a defender to hit back at
@@ -597,6 +616,14 @@ public class Enemy : MonoBehaviour, IDamageable
         {
             Die();
         }
+    }
+
+    // Restores health (used by the Regenerating trait)
+    public void Heal(int amount)
+    {
+        if (isDead || amount <= 0) return;
+
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
     }
 
     // Stops the enemy from moving or attacking for a short time
@@ -685,6 +712,12 @@ public class Enemy : MonoBehaviour, IDamageable
             ResourceManager.Instance.Add(resourceReward);
         }
         
+        // Volatile enemies explode when they die
+        if (mutation != null)
+        {
+            mutation.OnDeath();
+        }
+
         WaveManager.NotifyEnemyKilled(isBoss);
         Destroy(gameObject);
     }
