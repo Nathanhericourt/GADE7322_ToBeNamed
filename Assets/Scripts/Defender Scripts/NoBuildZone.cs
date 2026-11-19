@@ -25,7 +25,9 @@ namespace TowerDefense.Placement
             switch (shape)
             {
                 case ZoneShape.Sphere:
-                    return Vector3.Distance(point, transform.position) <= radius + padding;
+                    Vector3 flat = point - transform.position;
+                    flat.y = 0f;
+                    return flat.magnitude <= radius + padding;
 
                 case ZoneShape.Box:
                 default:

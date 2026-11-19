@@ -29,6 +29,11 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Reject a spawn point if its walking route to the start of the path is more than this many times longer than a straight line")]
     public float maxDetourFactor = 1.6f;
 
+    [Tooltip("How far (in world units) from a path's start an enemy can appear. Enemies take turns on each path")]
+    public float spawnSpread = 6f;
+
+    private int pathCursor = -1;
+
     private Camera mainCamera;
     private EnemyMutator mutator;
 
@@ -220,9 +225,13 @@ public class EnemySpawner : MonoBehaviour
         spawnPosition = Vector3.zero;
         chosenPath = null;
 
+        // Pick the path first (taking turns), so every path gets enemies
+        EnemyPath wantedPath = GetNextPath();
+        if (wantedPath == null) return false;
+
         for (int attempt = 0; attempt < 20; attempt++)
         {
-            Vector3 edgePoint = RandomPointOnOutskirts();
+            Vector3 edgePoint = PointNearPathStart(wantedPath);
 
             // Snap the spawn point onto the NavMesh so the agent activates
             if (!NavMesh.SamplePosition(edgePoint, out NavMeshHit edgeHit, 8f, NavMesh.AllAreas))
@@ -236,11 +245,7 @@ public class EnemySpawner : MonoBehaviour
                 continue;
             }
 
-            EnemyPath nearestPath = GetNearestPath(edgeHit.position);
-            if (nearestPath == null)
-            {
-                break;
-            }
+            EnemyPath nearestPath = wantedPath;
 
             if (!NavMesh.SamplePosition(nearestPath.GetWaypointPosition(0), out NavMeshHit startHit, 5f, NavMesh.AllAreas))
             {
@@ -259,7 +264,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Fallback so a wave is never lost: spawn on the start of a random path
-        EnemyPath fallbackPath = activePaths[Random.Range(0, activePaths.Count)];
+        EnemyPath fallbackPath = wantedPath;
 
         if (fallbackPath.WaypointCount == 0)
         {
@@ -276,6 +281,32 @@ public class EnemySpawner : MonoBehaviour
 
         Debug.LogWarning("No NavMesh found for a spawn point - skipping this spawn.");
         return false;
+    }
+
+    // Gives out the paths in turn, so each one gets the same number of enemies
+    private EnemyPath GetNextPath()
+    {
+        for (int i = 0; i < activePaths.Count; i++)
+        {
+            pathCursor = (pathCursor + 1) % activePaths.Count;
+            EnemyPath p = activePaths[pathCursor];
+
+            if (p != null && p.WaypointCount > 0) return p;
+        }
+
+        return null;
+    }
+
+    // A random point close to the start of this path, kept inside the map
+    private Vector3 PointNearPathStart(EnemyPath path)
+    {
+        Vector3 start = path.GetWaypointPosition(0);
+        Vector2 offset = Random.insideUnitCircle * spawnSpread;
+
+        float x = Mathf.Clamp(start.x + offset.x, terrainBounds.min.x + edgeMargin, terrainBounds.max.x - edgeMargin);
+        float z = Mathf.Clamp(start.z + offset.y, terrainBounds.min.z + edgeMargin, terrainBounds.max.z - edgeMargin);
+
+        return new Vector3(x, terrainBounds.center.y, z);
     }
 
     // Picks one of the four map edges, then a random spot along it

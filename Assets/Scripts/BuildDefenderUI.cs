@@ -25,15 +25,23 @@ public class BuildDefenderUI : MonoBehaviour
     [SerializeField] private Button thirdBuildButton;
     [SerializeField] private TMP_Text thirdBuildButtonLabel;
 
+    [Header("Fourth Defender")]
+    [SerializeField] private GameObject fourthDefenderPrefab;
+    [SerializeField] private TMP_Text fourthCostText;
+    [SerializeField] private Button fourthBuildButton;
+    [SerializeField] private TMP_Text fourthBuildButtonLabel;
+
     private Defender firstDefender;
     private Defender secondDefender;
     private Defender thirdDefender;
+    private Defender fourthDefender;
 
     private void Start()
     {
         firstDefender = GetDefender(defenderPrefab);
         secondDefender = GetDefender(secondDefenderPrefab);
         thirdDefender = GetDefender(thirdDefenderPrefab);
+        fourthDefender = GetDefender(fourthDefenderPrefab);
 
         if (buildButton != null)
             buildButton.onClick.AddListener(() => Build(defenderPrefab, firstDefender));
@@ -43,6 +51,9 @@ public class BuildDefenderUI : MonoBehaviour
 
         if (thirdBuildButton != null)
             thirdBuildButton.onClick.AddListener(() => Build(thirdDefenderPrefab, thirdDefender));
+        
+        if (fourthBuildButton != null)
+            fourthBuildButton.onClick.AddListener(() => Build(fourthDefenderPrefab, fourthDefender));
 
         RefreshLabels();
     }
@@ -52,6 +63,7 @@ public class BuildDefenderUI : MonoBehaviour
         UpdateButtonState(buildButton, firstDefender);
         UpdateButtonState(secondBuildButton, secondDefender);
         UpdateButtonState(thirdBuildButton, thirdDefender);
+        UpdateButtonState(fourthBuildButton, fourthDefender);
         RefreshLabels();
     }
 
@@ -62,12 +74,14 @@ public class BuildDefenderUI : MonoBehaviour
 
     private void RefreshLabels()
     {
-        SetCombinedCostLabel(costText, firstDefender, secondDefender, thirdDefender);
+        SetCombinedCostLabel(costText, firstDefender, secondDefender, thirdDefender, fourthDefender);
         SetCostLabel(secondCostText, secondDefender);
         SetCostLabel(thirdCostText, thirdDefender);
+        SetCostLabel(fourthCostText, fourthDefender);
         SetButtonLabel(buildButtonLabel, firstDefender);
         SetButtonLabel(secondBuildButtonLabel, secondDefender);
         SetButtonLabel(thirdBuildButtonLabel, thirdDefender);
+        SetButtonLabel(fourthBuildButtonLabel, fourthDefender);
     }
 
     private static void SetCombinedCostLabel(TMP_Text label, params Defender[] defenders)
