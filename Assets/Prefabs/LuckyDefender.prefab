@@ -152,8 +152,8 @@ MonoBehaviour:
   rangeBonusPerLevel: 0.75
   levelColors:
   - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 0.5, g: 0.8, b: 1, a: 1}
-  - {r: 1, g: 0.85, b: 0.3, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
   scaleGrowthPerLevel: 0.15
   seedOverride: 0
 --- !u!1 &8472090999748435001
