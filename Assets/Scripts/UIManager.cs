@@ -54,10 +54,6 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // No victory panel assigned: makes one by copying the Game Over panel and changing its title
-        if (victoryPanel == null && gameOverPanel != null)
-            victoryPanel = CreateVictoryPanel();
-
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (victoryPanel != null) victoryPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
@@ -95,21 +91,6 @@ public class UIManager : MonoBehaviour
             }
         }
 
-    }
-
-    //Copies the Game Over panel (buttons included) and swaps the title text
-    private GameObject CreateVictoryPanel()
-    {
-        GameObject copy = Instantiate(gameOverPanel, gameOverPanel.transform.parent);
-        copy.name = "VictoryPanel";
-
-        foreach (TMP_Text text in copy.GetComponentsInChildren<TMP_Text>(true))
-        {
-            if (text.text.ToUpperInvariant().Contains("GAME OVER"))
-                text.text = "YOU WIN!";
-        }
-
-        return copy;
     }
 
     //Called when towers health reaches 0
