@@ -76,13 +76,18 @@ public class UIManager : MonoBehaviour
             if (WaveManager.Instance.IsBossRound)
             {
                 waveText.text = "BOSS ROUND";
+
+                if (!string.IsNullOrEmpty(EnemyMutator.BossName))
+                {
+                    waveText.text = "BOSS ROUND - " + EnemyMutator.BossName;
+                }
             }
             else
             {
                 waveText.text = "Wave " + WaveManager.Instance.WaveNumber
                     + "/" + WaveManager.Instance.totalWaves
                     + "  " + WaveManager.Instance.EnemiesKilled
-                    + "/" + WaveManager.Instance.EnemiesThisWave;
+                    + "/" + WaveManager.Instance.EnemiesInCurrentWave;
             }
         }
 
@@ -126,6 +131,12 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    public void QuitGame()
+    {
+        Debug.Log("Quitting Game...");
+        Application.Quit();
     }
 
         public void LoadMainMenu(string mainMenuSceneName)

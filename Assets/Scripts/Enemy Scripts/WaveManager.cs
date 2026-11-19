@@ -42,6 +42,19 @@ public class WaveManager : MonoBehaviour
     [Tooltip("Extra resources per kill per wave, so the player's income keeps up with the tougher enemies")]
     public float rewardGrowthPerWave = 0.05f;
 
+    [Header("Upgrade Scaling (stronger defences = tougher waves)")]
+    [Tooltip("Extra enemy health for every upgrade level the player owns (all defenders + the tower). 0.04 = +4% per level")]
+    public float healthGrowthPerUpgradeLevel = 0.04f;
+
+    [Tooltip("Extra enemy damage for every upgrade level the player owns. 0.02 = +2% per level")]
+    public float damageGrowthPerUpgradeLevel = 0.02f;
+
+    [Tooltip("The bonus from upgrades never goes above this (1 = +100%), so heavy upgrading can't make waves unfair")]
+    public float maxUpgradeBonus = 1f;
+
+    [Tooltip("Every time the player owns this many upgrade levels, the next wave gets 1 extra enemy. 0 = off")]
+    public int upgradeLevelsPerExtraEnemy = 3;
+
     [Header("References")]
     public EnemySpawner enemySpawner; // Enemy spawning script
 
@@ -52,8 +65,12 @@ public class WaveManager : MonoBehaviour
     public bool IsBossRound { get; private set; }
     public bool GameWon { get; private set; }
 
+    //What the HUD should count up to: the enemies this wave really spawned
+    public int EnemiesInCurrentWave => enemiesToKill > 0 ? enemiesToKill : EnemiesThisWave;
+
     private bool waitingForNextWave;
-    private int enemiesToKill; // how many enemies this wave actually spawned
+    private int enemiesToKill; //how many enemies this wave actually spawneds
+    private Tower tower;
 
     private void Awake()
     {
@@ -85,12 +102,37 @@ public class WaveManager : MonoBehaviour
         // Wave 1 uses the normal prefab stats. The boss round uses the last wave's numbers
         int wavesPassed = Mathf.Min(WaveNumber, totalWaves) - 1;
 
-        float healthMultiplier = 1f + healthGrowthPerWave * wavesPassed;
-        float damageMultiplier = 1f + damageGrowthPerWave * wavesPassed;
+        // Upgrades the player owns make the enemies tougher too (capped)
+        int upgradeLevels = GetUpgradeLevels();
+        float upgradeHealthBonus = Mathf.Min(maxUpgradeBonus, healthGrowthPerUpgradeLevel * upgradeLevels);
+        float upgradeDamageBonus = Mathf.Min(maxUpgradeBonus, damageGrowthPerUpgradeLevel * upgradeLevels);
+
+        float healthMultiplier = 1f + healthGrowthPerWave * wavesPassed + upgradeHealthBonus;
+        float damageMultiplier = 1f + damageGrowthPerWave * wavesPassed + upgradeDamageBonus;
         float speedMultiplier = Mathf.Min(1f + speedGrowthPerWave * wavesPassed, maxSpeedMultiplier);
         float rewardMultiplier = 1f + rewardGrowthPerWave * wavesPassed;
 
         enemy.ApplyWaveScaling(healthMultiplier, damageMultiplier, speedMultiplier, rewardMultiplier);
+    }
+
+    // Total upgrade levels bought: every defender's level above 1, plus the tower's
+    public int GetUpgradeLevels()
+    {
+        int levels = 0;
+
+        foreach (Defender defender in Defender.All)
+        {
+            if (defender != null)
+                levels += defender.Level - 1;
+        }
+
+        if (tower == null)
+            tower = FindAnyObjectByType<Tower>();
+
+        if (tower != null)
+            levels += tower.Level - 1;
+
+        return levels;
     }
 
     // Enemy.cs calls this when an enemy dies
@@ -173,7 +215,8 @@ public class WaveManager : MonoBehaviour
             return;
         }
 
-        if (EnemiesKilled >= EnemiesThisWave)
+        // Count against what was really spawned, so a wave can never get stuck
+        if (EnemiesKilled >= EnemiesInCurrentWave)
             EndWave();
     }
 
@@ -188,6 +231,11 @@ public class WaveManager : MonoBehaviour
 
         // leftover budget / 10 = extra enemies
         int extraEnemies = remainingBudget / Mathf.Max(1, budgetDivisor);
+
+        // The more upgrades the player owns, the bigger the next wave
+        if (upgradeLevelsPerExtraEnemy > 0)
+            extraEnemies += GetUpgradeLevels() / upgradeLevelsPerExtraEnemy;
+        
         EnemiesThisWave = Mathf.Min(EnemiesThisWave + extraEnemies, maxEnemiesPerWave);
         WaveNumber++;
 
