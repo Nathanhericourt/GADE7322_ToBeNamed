@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public class Projectile : MonoBehaviour
 {
+    public System.Action<Enemy> OnHitEnemy;
+
     [SerializeField] private float speed = 20f;
     [SerializeField] private float hitDistance = 0.3f;
     [SerializeField] private float lifeTime = 5f;
@@ -58,6 +60,7 @@ public class Projectile : MonoBehaviour
             enemy.TakeDamage((int)damage);
             if (freezeDuration > 0f)
                 enemy.ApplyFreeze(freezeDuration);
+                OnHitEnemy?.Invoke(enemy);
         }
 
         if (hitEffectPrefab != null)

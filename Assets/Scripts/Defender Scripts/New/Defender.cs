@@ -90,7 +90,12 @@ public class Defender : MonoBehaviour, IDamageable, IUpgradable
     {
     }
 
-    private void Awake()
+    protected virtual void OnUpgraded()
+    {
+        
+    }
+
+    protected virtual void Awake()
     {
         // Remember the starting stats so every upgrade is worked out from the base values
         baseMaxHealth = maxHealth;
@@ -294,6 +299,7 @@ public class Defender : MonoBehaviour, IDamageable, IUpgradable
         currentHealth += maxHealth - oldMaxHealth;
 
         Debug.Log(DisplayName + " upgraded to level " + level);
+        OnUpgraded();
         return true;
     }
 
