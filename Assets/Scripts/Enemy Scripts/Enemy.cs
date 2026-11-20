@@ -708,7 +708,9 @@ public class Enemy : MonoBehaviour, IDamageable
         if (isDead) return;
         isDead = true;
 
-        if(ResourceManager.Instance != null)
+        bool bossRound = WaveManager.Instance != null && WaveManager.Instance.IsBossRound;
+
+        if(ResourceManager.Instance != null && !bossRound)
         {
             ResourceManager.Instance.Add(resourceReward);
         }

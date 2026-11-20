@@ -147,8 +147,13 @@ public class Tower : MonoBehaviour, IDamageable, IUpgradable
         }
     }
 
-    // ---------------- Upgrades ----------------
+    public void Heal(int amount)
+    {
+        if (isDestroyed) return;
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+    }
 
+    // ---------------- Upgrades ----------------
     public int NextUpgradeCost
     {
         get

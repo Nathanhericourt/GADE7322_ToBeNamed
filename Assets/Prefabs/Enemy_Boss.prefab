@@ -128,14 +128,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca108c0ab018aff419d306761328c473, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BruteEnemy
-  maxHealth: 600
+  maxHealth: 900
   moveSpeed: 2.2
   attackDamage: 25
   attackInterval: 2
   resourceReward: 100
-  defenderDetectRange: 4.5
-  retaliateRange: 12
-  retaliateDuration: 4
+  defenderDetectRange: 2.5
+  retaliateRange: 4
+  retaliateDuration: 2
   attackReach: 1.2
   chaseGiveUpRange: 14
   maxChaseTime: 12

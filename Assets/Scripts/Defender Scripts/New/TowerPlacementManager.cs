@@ -15,6 +15,10 @@ public class TowerPlacementManager : MonoBehaviour
     [Tooltip("How close (in pixels at 1080p) the cursor needs to be to a green cube to pick it. Bigger = easier to click")]
     [SerializeField] private float snapRadiusPixels = 35f;
 
+    [Tooltip("Seconds the player must wait before building another defender")]
+    [SerializeField] private float buildCooldown = 2f;
+    private float nextBuildTime;
+
     private GameObject selectedTowerPrefab;
 
     // True while the player has picked a defender to build and hasn't placed it yet
@@ -151,6 +155,12 @@ public class TowerPlacementManager : MonoBehaviour
 
     private void TryBuildOn(PlacementSpot spot)
     {
+        if (Time.time < nextBuildTime)
+        {
+            Debug.Log("Build cooldown - wait a moment.");
+            return;
+        }
+
         Defender defenderScript = selectedTowerPrefab.GetComponent<Defender>();
         int cost = defenderScript != null ? defenderScript.Cost : 0;
 
@@ -162,6 +172,8 @@ public class TowerPlacementManager : MonoBehaviour
 
         if (spot.TryPlaceTower(selectedTowerPrefab, out GameObject tower))
         {
+            nextBuildTime = Time.time + buildCooldown;
+            
             if (ResourceManager.Instance != null)
             {
                 ResourceManager.Instance.TrySpend(cost);

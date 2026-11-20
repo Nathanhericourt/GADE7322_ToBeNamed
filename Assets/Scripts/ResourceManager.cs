@@ -37,6 +37,9 @@ public class ResourceManager : MonoBehaviour
 
     private void Update()
     {
+        // No income in the boss round - the player only has what they saved
+        if (WaveManager.Instance != null && WaveManager.Instance.IsBossRound) return;
+        
         incomeTimer += Time.deltaTime;
         if (incomeTimer >= incomeInterval)
         {

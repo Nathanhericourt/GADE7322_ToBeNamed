@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RunnerEnemy
   maxHealth: 15
-  moveSpeed: 5.5
+  moveSpeed: 4.5
   attackDamage: 4
   attackInterval: 0.75
   resourceReward: 5

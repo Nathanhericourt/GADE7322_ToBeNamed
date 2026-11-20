@@ -55,6 +55,9 @@ public class WaveManager : MonoBehaviour
     [Tooltip("Every time the player owns this many upgrade levels, the next wave gets 1 extra enemy. 0 = off")]
     public int upgradeLevelsPerExtraEnemy = 3;
 
+    [Tooltip("Fraction of the tower's max health restored after each wave")]
+    [Range(0f, 1f)] public float towerHealPerWave = 0.2f;
+
     [Header("References")]
     public EnemySpawner enemySpawner; // Enemy spawning script
 
@@ -237,6 +240,13 @@ public class WaveManager : MonoBehaviour
             extraEnemies += GetUpgradeLevels() / upgradeLevelsPerExtraEnemy;
         
         EnemiesThisWave = Mathf.Min(EnemiesThisWave + extraEnemies, maxEnemiesPerWave);
+
+        if (tower == null)
+            tower = FindAnyObjectByType<Tower>();
+
+        if (tower != null)
+            tower.Heal(Mathf.CeilToInt(tower.MaxHealth * towerHealPerWave));
+
         WaveNumber++;
 
         if (WaveNumber > totalWaves)

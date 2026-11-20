@@ -334,6 +334,7 @@ MonoBehaviour:
     m_Bits: 64
   mainCamera: {fileID: 1511286976}
   snapRadiusPixels: 35
+  buildCooldown: 2
 --- !u!1 &140142897
 GameObject:
   m_ObjectHideFlags: 0
@@ -4228,21 +4229,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveManager
   startingEnemyCount: 5
-  budgetDivisor: 10
-  delayBetweenWaves: 3
-  maxEnemiesPerWave: 40
+  budgetDivisor: 20
+  delayBetweenWaves: 6
+  maxEnemiesPerWave: 30
   totalWaves: 10
-  bossEscortCount: 4
-  healthGrowthPerWave: 0.15
+  bossEscortCount: 8
+  healthGrowthPerWave: 0.17
   damageGrowthPerWave: 0.08
   speedGrowthPerWave: 0.02
-  maxSpeedMultiplier: 1.25
+  maxSpeedMultiplier: 1.15
   rewardGrowthPerWave: 0.05
   healthGrowthPerUpgradeLevel: 0.04
   damageGrowthPerUpgradeLevel: 0.02
   maxUpgradeBonus: 1
-  upgradeLevelsPerExtraEnemy: 3
-  enemySpawner: {fileID: 1007519649}
+  upgradeLevelsPerExtraEnemy: 4
+  towerHealPerWave: 0.2
+  enemySpawner: {fileID: 0}
 --- !u!1 &835019356
 GameObject:
   m_ObjectHideFlags: 0
@@ -4760,7 +4762,7 @@ MonoBehaviour:
   minWeight: 0.5
   maxWeight: 1.5
   minSpeedMultiplier: 0.75
-  maxSpeedMultiplier: 1.4
+  maxSpeedMultiplier: 1.15
   tintStrength: 0.8
   tintBrightness: 1.8
   glowStrength: 2.5
@@ -4770,11 +4772,11 @@ MonoBehaviour:
   hardHittingColor: {r: 1, g: 0.3, b: 0.3, a: 1}
   firstTraitWave: 3
   traitChancePerWave: 0.08
-  maxTraitChance: 0.6
+  maxTraitChance: 0.4
   traitWeights: 0300000003000000020000000200000001000000
   traitRewardMultiplier: 1.4
   armouredDamageTaken: 0.6
-  swiftSpeedMultiplier: 1.3
+  swiftSpeedMultiplier: 1.15
   regenPercentPerSecond: 0.04
   shieldPercentOfHealth: 0.4
   volatileRadius: 4
@@ -4964,7 +4966,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 427c331911218b24d876b60538c16532, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceManager
-  startingResources: 100
+  startingResources: 120
   incomePerTick: 5
   incomeInterval: 3
   currentResource: 0
