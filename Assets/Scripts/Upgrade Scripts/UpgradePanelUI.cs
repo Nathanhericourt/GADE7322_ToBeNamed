@@ -25,6 +25,7 @@ public class UpgradePanelUI : MonoBehaviour
     [SerializeField] private Sprite heavyIcon;
     [SerializeField] private Sprite rapidIcon;
     [SerializeField] private Sprite freezeIcon;
+    [SerializeField] private Sprite luckyIcon;
     [SerializeField] private Sprite towerIcon;
 
     [Header("Text")]
@@ -215,6 +216,7 @@ public class UpgradePanelUI : MonoBehaviour
         if (target is HeavyDefender) return heavyIcon;
         if (target is RapidDefender) return rapidIcon;
         if (target is FreezeDefender) return freezeIcon;
+        if (target is LuckyDefender) return luckyIcon;
         if (target is Tower) return towerIcon;
         return null;
     }

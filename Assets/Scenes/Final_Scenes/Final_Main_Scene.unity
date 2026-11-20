@@ -1430,6 +1430,7 @@ MonoBehaviour:
   heavyIcon: {fileID: 21300000, guid: 605812e00c1cd9e4296902dc420ed370, type: 3}
   rapidIcon: {fileID: 21300000, guid: 4f71ef68393e8c74ea95c7a55e16fba8, type: 3}
   freezeIcon: {fileID: 21300000, guid: 130ae4e69af172d4d9f76f2b9dde6f5d, type: 3}
+  luckyIcon: {fileID: 21300000, guid: 942dabafc1f0d994e97d33b9eaf67828, type: 3}
   towerIcon: {fileID: 21300000, guid: 1b7c7af1021a07b4ba6c432b34959199, type: 3}
   arrow: "\u2192"
   upgradeLabelFormat: "UPGRADE \u2022 {0}"
@@ -4587,8 +4588,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 200, y: -80}
-  m_SizeDelta: {x: 240, y: 40}
+  m_AnchoredPosition: {x: 200, y: -63.25}
+  m_SizeDelta: {x: 240, y: 60}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1006003805
 MonoBehaviour:
@@ -4640,9 +4641,9 @@ MonoBehaviour:
   m_fontSize: 30
   m_fontSizeBase: 30
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 10
+  m_fontSizeMax: 30
   m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
