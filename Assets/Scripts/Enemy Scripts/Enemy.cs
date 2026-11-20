@@ -115,8 +115,11 @@ public class Enemy : MonoBehaviour, IDamageable
         agent = GetComponent<NavMeshAgent>();
         agent.speed = moveSpeed;
 
-        // Enemies walk through each other, so a slow Brute can never block a fast Runner
-        agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        // Enemies push around each other instead of walking through
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
+
+        // Different priorities let one enemy nudge past another, so they don't jam
+        agent.avoidancePriority = Random.Range(30, 70);
 
         // Don't crawl to a stop at every waypoint - this script decides when a waypoint is reached
         agent.autoBraking = false;
@@ -151,8 +154,6 @@ public class Enemy : MonoBehaviour, IDamageable
 
     // This keeps the agent's footprint no bigger than the baked one.
     // The enemy still LOOKS the same size.
-    //
-    //
     private void FitAgentToNavMesh()
     {
         float scale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.z);
