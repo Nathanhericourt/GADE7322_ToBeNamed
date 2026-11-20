@@ -63,6 +63,13 @@ public class Enemy : MonoBehaviour, IDamageable
     [Tooltip("Tick this on the boss prefab. Killing the boss ends the boss round and wins the game.")]
     public bool isBoss = false;
 
+    [Header("VFX")]
+    [Tooltip("Spark burst played when this enemy dies. Leave empty to use the EnemySpawner's death VFX instead.")]
+    public GameObject deathVfxPrefab;
+
+    [Tooltip("Seconds before the death burst is cleaned up. Match Particle_MachExp duration (5).")]
+    public float deathVfxLifetime = 5f;
+
     private int currentHealth;
 
     public int CurrentHealth => currentHealth;
@@ -721,7 +728,18 @@ public class Enemy : MonoBehaviour, IDamageable
             mutation.OnDeath();
         }
 
+        PlayDetachedVfx(deathVfxPrefab, transform.position + Vector3.up, deathVfxLifetime);
+
         WaveManager.NotifyEnemyKilled(isBoss);
         Destroy(gameObject);
+    }
+
+    // Instantiates a one-shot particle prefab in the world so it is not destroyed with the enemy
+    public static void PlayDetachedVfx(GameObject prefab, Vector3 position, float lifetime)
+    {
+        if (prefab == null) return;
+
+        GameObject fx = Instantiate(prefab, position, Quaternion.identity);
+        Destroy(fx, Mathf.Max(0.1f, lifetime));
     }
 }

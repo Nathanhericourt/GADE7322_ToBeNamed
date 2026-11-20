@@ -1943,6 +1943,9 @@ MonoBehaviour:
   - {fileID: 1817558864385266356, guid: 8214f22a30c112d4393988fc2524d272, type: 3}
   spawnInterval: 2
   paths: []
+  spawnVfxPrefab: {fileID: 3757589999620859584, guid: a0fd460f78d526b47a941d161c4ed39c, type: 3}
+  deathVfxPrefab: {fileID: 3757589999620859584, guid: a0fd460f78d526b47a941d161c4ed39c, type: 3}
+  spawnVfxLifetime: 5
 --- !u!4 &1007519650
 Transform:
   m_ObjectHideFlags: 0

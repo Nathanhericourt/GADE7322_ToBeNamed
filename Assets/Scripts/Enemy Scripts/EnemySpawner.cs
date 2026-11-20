@@ -32,6 +32,16 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("How far (in world units) from a path's start an enemy can appear. Enemies take turns on each path")]
     public float spawnSpread = 6f;
 
+    [Header("VFX")]
+    [Tooltip("Played at each bot when it appears. Drag Assets/Materials/ParticleVFX/Particle_MachExp here.")]
+    public GameObject spawnVfxPrefab;
+
+    [Tooltip("Played when a bot dies if that bot has no death VFX of its own. Drag Particle_MachExp here.")]
+    public GameObject deathVfxPrefab;
+
+    [Tooltip("Seconds before spawn sparks are cleaned up. Particle_MachExp lasts 5 seconds.")]
+    public float spawnVfxLifetime = 5f;
+
     private int pathCursor = -1;
 
     private Camera mainCamera;
@@ -186,9 +196,16 @@ public class EnemySpawner : MonoBehaviour
 
         GameObject newEnemy = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
 
+        Enemy.PlayDetachedVfx(spawnVfxPrefab, spawnPosition + Vector3.up, spawnVfxLifetime);
+
         // Gives the path to the enemy
         if (newEnemy.TryGetComponent(out Enemy enemy))
         {
+            if (enemy.deathVfxPrefab == null)
+            {
+                enemy.deathVfxPrefab = deathVfxPrefab;
+            }
+
             enemy.SetPath(chosenPath);
 
             // Later waves are harder

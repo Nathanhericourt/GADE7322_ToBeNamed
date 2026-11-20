@@ -1965,6 +1965,9 @@ MonoBehaviour:
   offScreenMargin: 0.1
   maxDetourFactor: 1.6
   spawnSpread: 6
+  spawnVfxPrefab: {fileID: 3757589999620859584, guid: a0fd460f78d526b47a941d161c4ed39c, type: 3}
+  deathVfxPrefab: {fileID: 3757589999620859584, guid: a0fd460f78d526b47a941d161c4ed39c, type: 3}
+  spawnVfxLifetime: 5
 --- !u!4 &1007519650
 Transform:
   m_ObjectHideFlags: 0
