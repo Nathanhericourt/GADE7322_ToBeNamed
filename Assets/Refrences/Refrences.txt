@@ -3,3 +3,21 @@ https://assetstore.unity.com/packages/2d/textures-materials/milky-way-skybox-940
 Adam Bielecki
 www.adambielecki.com
 theadambielecki@gmail.com
+
+Audio (All Copy Right Free - C00)
+Boss Wave Background Song
+Author/Creator Unknown (n.d.) space_boss_battle_bpm175 [Audio file]. Available at: [Insert exact URL where you downloaded the file] (Accessed: 20 November 2026).
+In-Game Background Song
+DST (n.d.) DST-TowerDefenseTheme [Audio file]. Available at: http://www.nosoapradio.us/ (Accessed: 20 November 2026).
+MainMenu Background Song
+yd (n.d.) ObservingTheStar (also listed as Another space background track) [Audio file]. Available at: https://opengameart.org/content/another-space-background-track (Accessed: 20 November 2026).
+
+Enemies (All Copy Right Free - C00)
+Brute Enemy
+Juanpmh (2025) Animated Low Poly Robot Free - Stylized Sci-Fi Character (Version 1.0.0) [3D asset]. Available at: https://assetstore.unity.com/packages/3d/characters/robots/animated-low-poly-robot-free-stylized-sci-fi-character-318201 (Accessed: 20 November 2026).
+Runner Enemy
+PolyOne Studio (2026) Free Stylized Sci-Fi Scout Bot (Version 1.0) [3D asset]. Available at: https://assetstore.unity.com/packages/3d/characters/robots/free-stylized-sci-fi-scout-bot-371626 (Accessed: 20 November 2026).
+Normal Enemy
+V5 (2025) Cartoon Black Titan (Version 1.1) [3D asset]. Available at: https://assetstore.unity.com/packages/3d/characters/robots/cartoon-black-titan-49131 (Accessed: 20 November 2026).
+Boss Enemy
+Zeuk Games (2025) Drone Companions Starter Pack (Version 1.0.0) [3D asset]. Available at: https://assetstore.unity.com/packages/3d/characters/robots/drone-companions-starter-pack-326056 (Accessed: 20 November 2026).
